@@ -53,9 +53,5 @@ def convert_to_parquet():
     save_as_parquet(df=submissions,filename='submissions.parquet')
     gc.collect()
 
-
 if __name__ == '__main__':
     convert_to_parquet()
-
-
-

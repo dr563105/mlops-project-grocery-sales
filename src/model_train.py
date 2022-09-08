@@ -122,8 +122,7 @@ if __name__ == '__main__':
     X_test = load_pkl('X_test.pkl')
     items = load_pkl('df_items.pkl')
     df_2017 = load_pkl('df_2017.pkl')
-    df_test = pd.read_parquet(
-                '../input/dftest.parquet',  engine='pyarrow')
+    df_test = pd.read_parquet( '../input/dftest.parquet',  engine='pyarrow')
     num_days = 6
 
     val_pred, test_pred = model_training(X_train=X_train, y_train=y_train, X_val=X_val, y_val=y_val, X_test=X_test, df_items=items, num_days=num_days)

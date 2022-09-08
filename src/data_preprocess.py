@@ -6,22 +6,20 @@ import gc
 import pickle
 import logging
 
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',filename="../logs/log_preprocess.log", level=logging.DEBUG)
+log_format ='%(asctime)s %(levelname)-8s %(message)s' 
+logging.basicConfig(format= log_format,
+        filename="../logs/log_preprocess.log", 
+        level=logging.DEBUG)
 logger = logging.getLogger()
 
-def read_parquet_files():
+def read_parquet_files(filename):
     '''
-    Read parquet file formats and returns their corresponding pandas dataframe
+    Read parquet file format for given filename and returns the contents
     '''
     logger.info("Reading Parquet files...") 
-    df2016_train = pd.read_parquet(
-                    '../input/df2016_train.parquet',engine='pyarrow')
-    df_test = pd.read_parquet('../input/dftest.parquet',engine='pyarrow')
-    df_items = pd.read_parquet(
-                    '../input/items.parquet',engine='pyarrow')
-    #df_stores = pd.read_parquet(
-     #               '../input/stores.parquet',engine='pyarrow')
-    return df2016_train, df_test, df_items
+    df = pd.read_parquet(filename, engine='pyarrow')
+    #df_stores = pd.read_parquet('../input/stores.parquet',engine='pyarrow')
+    return df
 
 def save_to_pkl(df, filename):
     '''
@@ -192,7 +190,6 @@ def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
     logger.info("Creating X_train, y_train...")
     X_train = pd.concat(X_l, axis=0)
     y_train = np.concatenate(y_l, axis=0)
-    
     del X_l, y_l
 
     save_to_pkl(df=X_train, filename='X_train.pkl')
@@ -203,12 +200,12 @@ def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
 
     logger.info("Creating X_val, y_val...")
     X_val, y_val = prepare_dataset(df_2017, promo_2017, date(2017, 7, 26))
-
     X_val2 = prepare_dataset(df_2017_item, promo_2017_item, date(2017, 7, 26), is_train=False, name_prefix='item')
     X_val2.index = df_2017_item.index
     X_val2 = X_val2.reindex(df_2017.index.get_level_values(1)).reset_index(drop=True)
 
-    # X_val3 = prepare_dataset(df_2017_store_class, df_2017_promo_store_class, date(2017, 7, 26), is_train=False, name_prefix='store_class')
+    # X_val3 = prepare_dataset(df_2017_store_class, 
+    #   df_2017_promo_store_class, date(2017, 7, 26), is_train=False, name_prefix='store_class')
     # X_val3.index = df_2017_store_class.index
     # X_val3 = X_val3.reindex(df_2017_store_class_index).reset_index(drop=True)
 
@@ -236,8 +233,9 @@ def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
     save_to_pkl(df=X_test,filename='X_test.pkl')
 
 if __name__ == '__main__':
-    df2016_train, df_test, df_items = read_parquet_files()
-    df2016_train, df_test, df_items, df_stores = read_parquet_files()
-    df_2017, promo_2017, df_2017_item, promo_2017_item, df_2017_store_class, df_2017_store_class_index, df_2017_promo_store_class = feature_engg_1(df2016_train, df_test, df_items, df_stores)
+    df2016_train = read_parquet_files(filename='../input/df2016_train.parquet')
+    df_test = read_parquet_files(filename='../input/df_test.parquet')
+    df_items = read_parquet_files(filename='../input/df_items.parquet')
+    df_2017, promo_2017, df_2017_item, promo_2017_item= feature_engg_1(df2016_train, df_test, df_items) 
     feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item)
     logger.info("All done...")
