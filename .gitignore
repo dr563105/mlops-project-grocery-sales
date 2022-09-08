@@ -5,7 +5,6 @@ artifacts/
 mlruns/
 output/
 *.b
-*.bin
 sample/
 docker-compose
 *.parquet
