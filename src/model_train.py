@@ -23,7 +23,7 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
     logger.info("Training models...")
     logger.info("Setting Params")
     params = {
-        'num_leaves': 80,
+        'num_leaves': 10,
         'objective': 'regression',
         'min_data_in_leaf': 200,
         'learning_rate': 0.02,
@@ -31,7 +31,7 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
         'bagging_fraction': 0.7,
         'bagging_freq': 1,
         'metric': 'l2',
-        'num_threads': 16
+        'num_threads': 4
     }
     
     MAX_ROUNDS = 1
@@ -52,7 +52,7 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
             categorical_feature=cate_vars)
         bst = lgb.train(
             params, dtrain, num_boost_round=MAX_ROUNDS,
-            valid_sets=[dtrain, dval], early_stopping_rounds=125, verbose_eval=50)
+            valid_sets=[dtrain, dval], early_stopping_rounds=1, verbose_eval=50)
         logger.info("\n".join(("%s: %.2f" % x) for x in sorted(
             zip(X_train.columns, bst.feature_importance("gain")),
             key=lambda x: x[1], reverse=True)))
@@ -63,7 +63,7 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
             X_test, num_iteration=bst.best_iteration or MAX_ROUNDS))
     
     save_to_pkl(input=bst,filename='model_lgbm.bin')
-
+    del X_train
     return val_pred, test_pred
 
 def validation_and_prediction(val_pred, y_val, df_2017):
