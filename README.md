@@ -1,6 +1,6 @@
 # Grocery Sales Forcasting
-This repository contains the final capstone project for [Mlops-zoomcamp course]
-(https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club).
+This repository contains the final capstone project for 
+[Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club).
 
 ## Project Statement
 Given sales history and promotional information of stores' items, predict future product sales. 
