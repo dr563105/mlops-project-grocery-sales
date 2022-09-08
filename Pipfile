@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+scikit-learn = "*"
+lightgbm = "*"
+
+[dev-packages]
+pytest = "*"
+pre-commit = "*"
+pyarrow = "*"
+pylint = "*"
+black = "*"
+isort = "*"
+
+[requires]
+python_version = "3.9"

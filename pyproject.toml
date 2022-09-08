@@ -1,0 +1,23 @@
+[tool.pylint.messages_control]
+
+disable = [
+    "invalid-name",
+    "redefined-outer-name",
+    "logging-too-many-args",
+    "logging-fstring-interpolation",
+    "missing-module-docstring",
+    "consider-using-f-string",
+    "line-too-long",
+    "too-many-locals",
+    "redefined-builtin",
+    "too-many-arguments",
+    "logging-not-lazy",
+    ]
+
+[tool.black]
+line-length = 80
+target-version = ['py39']
+
+[tool.isort]
+multi_line_output = 3
+length_sort = true
