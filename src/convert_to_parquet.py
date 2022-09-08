@@ -1,7 +1,9 @@
-from syslog import LOG_WARNING
 import numpy as np
 import pandas as pd
 import gc
+
+def save_as_parquet(df, filename):
+    df.to_parquet(path=f'../{filename}',engine='pyarrow')
 
 def convert_to_parquet():
     df_train_all = pd.read_csv('../input/favoritagrocerysalesforecastingextracted/train.csv',
@@ -45,8 +47,6 @@ def convert_to_parquet():
     save_as_parquet(df=submissions,filename='submissions.parquet')
     gc.collect()
 
-def save_as_parquet(df, filename):
-    df.to_parquet(path=f'../working/{filename}',engine='pyarrow')
 
 if __name__ == '__main__':
     convert_to_parquet()

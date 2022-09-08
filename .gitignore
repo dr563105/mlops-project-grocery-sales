@@ -15,3 +15,4 @@ docker-compose
 *.tfstate.*
 tryouts/
 *.pytest_cache*
+output/

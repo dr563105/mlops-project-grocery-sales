@@ -1,20 +1,26 @@
-from ast import If
 import pandas as pd
 import numpy as np
 import pickle
-import lgbm as lgb
+import lightgbm as lgb
 from sklearn.metrics import mean_squared_error
+import logging
+
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',filename="../logs/log_model_train.log", level=logging.DEBUG)
+logger = logging.getLogger()
 
 def save_to_pkl(input, filename):
+    logger.info(f"Saving{filename}...")
     with open(f'../models/{filename}','wb') as f_in:
         pickle.dump(input, f_in)
 
 def load_pkl(filename):
+    logger.info(f"Reading {filename}...")
     with open(f'../output/{filename}','rb') as f_out:
         return pickle.load(f_out)
 
 def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
-    print("Training and predicting models...")
+    logger.info("Training models...")
+    logger.info("Setting Params")
     params = {
         'num_leaves': 80,
         'objective': 'regression',
@@ -32,9 +38,9 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
     test_pred = []
     cate_vars = []
     for i in range(16):
-        print("=" * 50)
-        print("Step %d" % (i+1))
-        print("=" * 50)
+        logger.info("=" * 50)
+        logger.info("Step %d" % (i+1))
+        logger.info("=" * 50)
         dtrain = lgb.Dataset(
             X_train, label=y_train[:, i],
             categorical_feature=cate_vars,
@@ -46,7 +52,7 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
         bst = lgb.train(
             params, dtrain, num_boost_round=MAX_ROUNDS,
             valid_sets=[dtrain, dval], early_stopping_rounds=125, verbose_eval=50)
-        print("\n".join(("%s: %.2f" % x) for x in sorted(
+        logger.info("\n".join(("%s: %.2f" % x) for x in sorted(
             zip(X_train.columns, bst.feature_importance("gain")),
             key=lambda x: x[1], reverse=True)))
 
@@ -60,14 +66,14 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
     return val_pred, test_pred
 
 def validation_and_prediction(val_pred):
-    print("Validation mse:", mean_squared_error(
+    logger.info("Validation mse:", mean_squared_error(
     y_val, np.array(val_pred).transpose()))
 
     weight = items["perishable"] * 0.25 + 1
     err = (y_val - np.array(val_pred).transpose())**2
     err = err.sum(axis=1) * weight
     err = np.sqrt(err.sum() / weight.sum() / 16)
-    print(f'nwrmsle = {err}')
+    logger.info(f'nwrmsle = {err}')
 
     y_val = np.array(val_pred).transpose()
     df_preds = pd.DataFrame(
@@ -99,9 +105,10 @@ if __name__ == '__main__':
     items = load_pkl('df_items.pkl')
     df_2017 = load_pkl('df_2017.pkl')
     df_test = pd.read_parquet(
-                '../input/grocery-sales-forecasting-parquet/dftest.parquet',  engine='pyarrow')
+                '../input/dftest.parquet',  engine='pyarrow')
     num_days = 6
 
     val_pred, test_pred = model_training(X_train=X_train, y_train=y_train, X_val=X_val, y_val=y_val, X_test=X_test, df_items=items, num_days=num_days)
     validation_and_prediction(val_pred=val_pred, df_2017=df_2017)
     make_submission(df_test, test_pred)
+    logger.info("All done...")
