@@ -10,16 +10,25 @@ logger = logging.getLogger()
 
 def save_to_pkl(input, filename):
     logger.info(f"Saving {filename}...")
+    '''
+    Pickles/Saves content into a file 
+    '''
     with open(f'../models/{filename}','wb') as f_in:
         pickle.dump(input, f_in)
 
 def load_pkl(filename):
+    '''
+    Unpickles/loads file and returns the contents
+    '''
     logger.info(f"Reading {filename}...")
     with open(f'../output/{filename}','rb') as f_out:
         df = pickle.load(f_out)
     return df
 
 def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
+    '''
+    Model parameters are set and model is trained
+    '''
     logger.info("Training models...")
     logger.info("Setting Params")
     params = {
@@ -64,9 +73,14 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
     
     save_to_pkl(input=bst,filename='model_lgbm.bin')
     del X_train
+    save_to_pkl(input=val_pred, filename='val_pred.pkl')
+    save_to_pkl(input=test_pred, filename='test_pred.pkl')
     return val_pred, test_pred
 
 def validation_and_prediction(val_pred, y_val, df_2017):
+    '''
+    Calculates error for the validation set and stores valadation predictions in a file
+    '''
     logger.info("Validation mse:", mean_squared_error(
     y_val, np.array(val_pred).transpose()))
 
@@ -84,9 +98,12 @@ def validation_and_prediction(val_pred, y_val, df_2017):
     df_preds.index.set_names(["store_nbr", "item_nbr", "date"], inplace=True)
     df_preds["unit_sales"] = np.clip(np.expm1(df_preds["unit_sales"]), 0, 1000)
     df_preds.reset_index().to_parquet('../output/lgb_cv.parquet', index=False, engine='pyarrow')
+    df_preds.reset_index().to_parquet('../output/lgb_cv.parquet', index=False, engine= 'pyarrow')
 
 def make_submission(df_test, test_pred):
-    print("Making submission...")
+    '''
+    Takes the test set predictions and merges with the provided test dataframe
+    '''
     y_test = np.array(test_pred).transpose()
     df_preds = pd.DataFrame(
         y_test, index=df_2017.index,

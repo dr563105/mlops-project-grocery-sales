@@ -10,6 +10,9 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',filename=".
 logger = logging.getLogger()
 
 def read_parquet_files():
+    '''
+    Read parquet file formats and returns their corresponding pandas dataframe
+    '''
     logger.info("Reading Parquet files...") 
     df2016_train = pd.read_parquet(
                     '../input/df2016_train.parquet',engine='pyarrow')
@@ -21,11 +24,17 @@ def read_parquet_files():
     return df2016_train, df_test, df_items
 
 def save_to_pkl(df, filename):
+    '''
+    Pickles/Saves content into a file 
+    '''
     logger.info(f"Saving {filename}")
     with open(f'../output/{filename}','wb') as f_in:
         pickle.dump(df, f_in)
 
-def feature_engg(df2016_train, df_test, df_items):
+def feature_engg_1(df2016_train, df_test, df_items):
+    '''
+    Takes pandas dataframes as inputs and add new features
+    '''
     logger.info("Feature engineering...")
     le = LabelEncoder()
     
@@ -76,6 +85,9 @@ def get_timespan(df, dt, minus, periods, freq='D'):
     return df[pd.date_range(dt - timedelta(days=minus), periods=periods, freq=freq)]
 
 def prepare_dataset(df, promo_df, t2017, is_train=True, name_prefix=None):
+    '''
+    Takes pandas dataframes as inputs and add new features
+    '''
     X = {
         "promo_14_2017": get_timespan(promo_df, t2017, 14, 14).sum(axis=1).values,
         "promo_60_2017": get_timespan(promo_df, t2017, 60, 60).sum(axis=1).values,
@@ -151,8 +163,11 @@ def prepare_dataset(df, promo_df, t2017, is_train=True, name_prefix=None):
     return X
 
 
-def organise_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item):
-    print("Going to prepare dataset...")
+def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
+    '''
+    Takes pandas dataframes as inputs and add new features. 
+    Finally collates all the dataframes into X_train, y_train, X_val, y_val and X_test
+    '''
     t2017 = date(2017, 6, 14)
     num_days = 6
     X_l, y_l = [], []
@@ -222,6 +237,7 @@ def organise_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item):
 
 if __name__ == '__main__':
     df2016_train, df_test, df_items = read_parquet_files()
-    df_2017, promo_2017, df_2017_item, promo_2017_item = feature_engg(df2016_train, df_test, df_items)
-    organise_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item)
+    df2016_train, df_test, df_items, df_stores = read_parquet_files()
+    df_2017, promo_2017, df_2017_item, promo_2017_item, df_2017_store_class, df_2017_store_class_index, df_2017_promo_store_class = feature_engg_1(df2016_train, df_test, df_items, df_stores)
+    feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item)
     logger.info("All done...")

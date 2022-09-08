@@ -3,9 +3,15 @@ import pandas as pd
 import gc
 
 def save_as_parquet(df, filename):
+    '''
+    Saves contents in parquet file format using Apache pyarrow engine
+    '''
     df.to_parquet(path=f'../{filename}',engine='pyarrow')
 
 def convert_to_parquet():
+    '''
+    Reads large csv file formats and converts them Apache parquet format using pyarrow engine
+    '''
     df_train_all = pd.read_csv('../input/favoritagrocerysalesforecastingextracted/train.csv',
                     usecols=[1, 2, 3, 4, 5],
                     converters={'unit_sales': lambda u: np.log1p(float(u)) if float(u) > 0 else 0},
