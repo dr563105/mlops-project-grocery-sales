@@ -19,9 +19,16 @@ def save_to_pkl(input, filename):
     Pickles/Saves content into a file
     """
     logger.info(f"Saving {filename}")
-    with open(f"../models/{filename}", "wb") as f_in:
+    with open(f"../output/{filename}", "wb") as f_in:
         pickle.dump(input, f_in)
 
+def savemodel_to_pkl(input, filename):
+    """
+    Pickles/Saves model into models directory
+    """
+    logger.info(f"Saving {filename}")
+    with open(f"../models/{filename}", "wb") as f_in:
+        pickle.dump(input, f_in)
 
 def load_pkl(filename):
     """
@@ -39,17 +46,29 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
     """
     logger.info("Training models...")
     logger.info("Setting Params")
-    params = {
-        "num_leaves": 10,
+    param = {
         "objective": "regression",
-        "min_data_in_leaf": 200,
-        "learning_rate": 0.02,
-        "feature_fraction": 0.8,
-        "bagging_fraction": 0.7,
-        "bagging_freq": 1,
         "metric": "l2",
-        "num_threads": 4,
+        "verbosity": -1,
+        "boosting_type": "gbdt",
+        "n_estimators": 200,
+        "early_stopping_round": 5,
+        #"device": "gpu",
+        #"gpu_platform_id": 0,
+        #"gpu_device_id": 0,
     }
+    
+    param2 = {
+        'num_leaves': 4, #
+        'feature_fraction': 0.7386878356648194, 
+        'bagging_fraction': 0.8459744550725283, 
+        'bagging_freq': 1, 
+        'max_depth': 2, 
+        'max_bin': 2, #249 
+        'learning_rate': 0.02,
+        "min_data_in_leaf": 2, #200
+    }
+    param.update(param2) 
 
     MAX_ROUNDS = 1
     val_pred = []
@@ -73,7 +92,7 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
             categorical_feature=cate_vars,
         )
         bst = lgb.train(
-            params,
+            param,
             dtrain,
             num_boost_round=MAX_ROUNDS,
             valid_sets=[dtrain, dval],
@@ -98,7 +117,7 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
             bst.predict(X_test, num_iteration=bst.best_iteration or MAX_ROUNDS)
         )
 
-    save_to_pkl(input=bst, filename="model_lgbm.bin")
+    savemodel_to_pkl(input=bst, filename="model_lgbm.bin")
     del X_train
     save_to_pkl(input=val_pred, filename="val_pred.pkl")
     save_to_pkl(input=test_pred, filename="test_pred.pkl")
@@ -121,49 +140,45 @@ def validation_and_prediction(val_pred, y_val, df_2017):
     logger.info(f"nwrmsle = {err}")
 
     y_val = np.array(val_pred).transpose()
-    df_preds = (
+    df_val_preds = (
         pd.DataFrame(
             y_val,
             index=df_2017.index,
-            columns=pd.date_range("2017-07-26", periods=16),
+            columns=pd.date_range("2022-09-10", periods=16),
         )
         .stack()
         .to_frame("unit_sales")
     )
 
-    df_preds.index.set_names(["store_nbr", "item_nbr", "date"], inplace=True)
-    df_preds["unit_sales"] = np.clip(np.expm1(df_preds["unit_sales"]), 0, 1000)
-    df_preds.reset_index().to_parquet(
+    df_val_preds.index.set_names(["store_nbr", "item_nbr", "date"], inplace=True)
+    df_val_preds["unit_sales"] = np.clip(np.expm1(df_val_preds["unit_sales"]), 0, 1000)
+    logger.info("Saving lgb cv predictions...")
+    df_val_preds.reset_index().to_parquet(
         "../output/lgb_cv.parquet", index=False, engine="pyarrow"
     )
-    df_preds.reset_index().to_parquet(
-        "../output/lgb_cv.parquet", index=False, engine="pyarrow"
-    )
-
-
+   
 def make_submission(df_test, test_pred):
     """
     Takes the test set predictions and merges with the provided test dataframe
     """
     y_test = np.array(test_pred).transpose()
-    df_preds = (
+    df_test_preds = (
         pd.DataFrame(
             y_test,
             index=df_2017.index,
-            columns=pd.date_range("2017-08-16", periods=16),
+            columns=pd.date_range("2022-09-10", periods=16),
         )
         .stack()
         .to_frame("unit_sales")
     )
-    df_preds.index.set_names(["store_nbr", "item_nbr", "date"], inplace=True)
+    df_test_preds.index.set_names(["store_nbr", "item_nbr", "date"], inplace=True)
 
-    submission = df_test[["id"]].join(df_preds, how="left").fillna(0)
+    submission = df_test[["id"]].join(df_test_preds, how="left").fillna(0)
     submission["unit_sales"] = np.clip(
         np.expm1(submission["unit_sales"]), 0, 1000
     )
     submission.to_parquet(
         "../output/lgb_sub.parquet",
-        float_format="%.4f",
         index=None,
         engine="pyarrow",
     )
@@ -177,7 +192,7 @@ if __name__ == "__main__":
     X_test = load_pkl("X_test.pkl")
     items = load_pkl("df_items.pkl")
     df_2017 = load_pkl("df_2017.pkl")
-    df_test = pd.read_parquet("../input/dftest.parquet", engine="pyarrow")
+    df_test = pd.read_parquet("../input/df_test_v1.parquet", engine="pyarrow")
     num_days = 6
 
     val_pred, test_pred = model_training(
@@ -189,6 +204,6 @@ if __name__ == "__main__":
         df_items=items,
         num_days=num_days,
     )
-    validation_and_prediction(val_pred=val_pred, y_val=y_val, df_2017=df_2017)
+    val_pred, test_pred = validation_and_prediction(val_pred=val_pred, y_val=y_val, df_2017=df_2017)
     make_submission(df_test, test_pred)
     logger.info("All done...")

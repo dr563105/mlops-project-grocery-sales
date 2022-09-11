@@ -16,3 +16,4 @@ tryouts/
 *.pytest_cache*
 output/
 .vscode
+Untitled.ipynb
