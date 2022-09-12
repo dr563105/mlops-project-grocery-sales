@@ -18,3 +18,4 @@ setup:
 	pip install pipenv
 	pipenv install --dev
 	pipenv run pre-commit install
+	pipenv shell
