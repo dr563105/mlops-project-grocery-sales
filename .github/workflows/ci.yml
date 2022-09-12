@@ -19,8 +19,8 @@ jobs:
         working-directory: "deployment"
         run: pip install pipenv && pipenv install --dev
 
-      - name: Run unit tests
-        run: make run_tests
+      # - name: Run unit tests
+        # run: make run_tests
 
       - name: Run quality checks
         run: make quality-checks

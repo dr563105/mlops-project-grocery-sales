@@ -323,7 +323,7 @@ def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
 
 if __name__ == "__main__":
     df2016_train = read_parquet_files(filename="../input/df2016_train.parquet")
-    df_test = read_parquet_files(filename="../input/df_test.parquet")
+    df_test = read_parquet_files(filename="../input/df_test_v1.parquet")
     df_items = read_parquet_files(filename="../input/df_items.parquet")
     df_2017, promo_2017, df_2017_item, promo_2017_item = feature_engg_1(
         df2016_train, df_test, df_items
