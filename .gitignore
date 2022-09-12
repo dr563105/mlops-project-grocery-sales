@@ -19,3 +19,5 @@ tryouts/
 output/
 .vscode
 Untitled.ipynb
+.env
+.env1

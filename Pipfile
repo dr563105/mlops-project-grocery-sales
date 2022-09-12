@@ -17,6 +17,10 @@ pyarrow = "*"
 pylint = "*"
 black = "*"
 isort = "*"
+mlflow = "*"
+boto3 = "*"
+psycopg2-binary = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.9"

@@ -1,3 +1,6 @@
+[tool.pylint.duplicate_code]
+min-similarity-lines= 10
+
 [tool.pylint.messages_control]
 
 disable = [
@@ -12,6 +15,7 @@ disable = [
     "redefined-builtin",
     "too-many-arguments",
     "logging-not-lazy",
+    "unused-argument"
     ]
 
 [tool.black]
