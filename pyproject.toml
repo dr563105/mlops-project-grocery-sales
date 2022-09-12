@@ -12,6 +12,7 @@ disable = [
     "redefined-builtin",
     "too-many-arguments",
     "logging-not-lazy",
+    "missing-timeout"
     ]
 
 [tool.black]
