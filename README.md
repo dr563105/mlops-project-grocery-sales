@@ -14,7 +14,7 @@ The usual MLOPS stages involve model tracking, workflow orchestration, model dep
 In this project, we will however go from data sourcing phase till deployment(end-to-end). At the end we will be able to easily deploy and monitor out model's performance.
 
 ## Plan/tasks
-- [$${\color{black}x}$$] Choose/collect dataset
+- [x] Choose/collect dataset
 - [x] Convert huge raw CSV to parquet file formats
 - [x] Use Kaggle to store preprocessed datasets
 - [x] Preprocess and feature engineer
@@ -26,7 +26,7 @@ In this project, we will however go from data sourcing phase till deployment(end
     - [x] Do basic workflow orchestration with local API server
     - [x] Use a cloud(AWS) as API server
     - [x] Use local storage to store persisting flow code
-    - [] Deploy workflow to production
+    - [ ] Deploy workflow to production
 - [ ] MLFlow 
     - [x] Track experiments local backend(sqlite)
     - [x] Track experiments with a cloud(AWS RDS) backend
