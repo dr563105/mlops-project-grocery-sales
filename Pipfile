@@ -19,9 +19,8 @@ black = "*"
 isort = "*"
 mlflow = "*"
 boto3 = "*"
-psycopg2-binary = "*"
-python-dotenv = "*"
 prefect = "*"
+kaggle = "*"
 
 [requires]
 python_version = "3.9"

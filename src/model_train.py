@@ -60,9 +60,8 @@ def load_pkl(filename):
         df = pickle.load(f_out)
     return df
 
-
-@task(name="model training...")
-def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
+@flow(name="Sales-predictor-modelling-valdition")
+def model_training(X_train, y_train, X_val, y_val, X_test, df_items, df_2017, num_days):
     """
     Model parameters are set and model is trained
     """
@@ -153,10 +152,9 @@ def model_training(X_train, y_train, X_val, y_val, X_test, df_items, num_days):
         save_to_pkl(input=test_pred, filename="test_pred.pkl")
         mlflow.log_artifact("../output/test_pred.pkl", artifact_path="output")
         # mlflow.lightgbm.log_model(test_pred, artifact_path="output")
-        return val_pred, test_pred
+        validation_and_prediction(val_pred=val_pred, y_val=y_val, df_2017=df_2017, items=df_items)
 
-
-@task(name="validation...")
+@task(name="validation and prediction module")
 def validation_and_prediction(val_pred, y_val, df_2017, items):
     """
     Calculates error for the validation set and stores valadation predictions in a file
@@ -193,43 +191,9 @@ def validation_and_prediction(val_pred, y_val, df_2017, items):
     )
     logger.info("Saving lgb cv predictions...")
     df_val_preds.reset_index().to_parquet(
-        "../output/lgb_cv.parquet", index=False, engine="pyarrow"
+        "../predictions/lgb_cv.parquet", index=False, engine="pyarrow"
     )
 
-
-@task(name="making submission...")
-def make_submission(df_test, test_pred, df_2017):
-    """
-    Takes the test set predictions and merges with the provided test dataframe
-    """
-    y_test = np.array(test_pred).transpose()
-    df_test_preds = (
-        pd.DataFrame(
-            y_test,
-            index=df_2017.index,
-            columns=pd.date_range("2022-09-10", periods=16),
-        )
-        .stack()
-        .to_frame("unit_sales")
-    )
-    df_test_preds.index.set_names(
-        ["store_nbr", "item_nbr", "date"], inplace=True
-    )
-
-    submission = df_test[["id"]].join(df_test_preds, how="left").fillna(0)
-    submission["unit_sales"] = np.clip(
-        np.expm1(submission["unit_sales"]), 0, 1000
-    )
-    # mlflow.log_artifact(df_test_preds)
-    submission.to_parquet(
-        "../output/lgb_sub.parquet",
-        index=None,
-        engine="pyarrow",
-    )
-    mlflow.log_artifact("../output/lgb_sub.parquet", artifact_path="output")
-
-
-@flow(name="Sales-predictor-modelling")
 def main():
     """
     main function: loads variables and invokes other functions
@@ -242,25 +206,17 @@ def main():
     X_test = load_pkl("X_test.pkl")
     items = load_pkl("df_items.pkl")
     df_2017 = load_pkl("df_2017.pkl")
-    df_test = pd.read_parquet("../input/df_test_v1.parquet", engine="pyarrow")
+    # df_test = pd.read_parquet("../input/df_test_v1.parquet", engine="pyarrow")
     num_days = 6
 
-    val_pred, test_pred = model_training(
-        X_train=X_train,
-        y_train=y_train,
-        X_val=X_val,
-        y_val=y_val,
-        X_test=X_test,
-        df_items=items,
-        num_days=num_days,
+    model_training( X_train=X_train, y_train=y_train, X_val=X_val, y_val=y_val, 
+                    X_test=X_test,
+                    df_items=items,
+                    df_2017=df_2017,
+                    num_days=num_days,
     )
 
-    validation_and_prediction(
-        val_pred=val_pred, y_val=y_val, df_2017=df_2017, items=items
-    )
-    make_submission(df_test, test_pred, df_2017)
     logger.info("All done...")
-
 
 if __name__ == "__main__":
     main()

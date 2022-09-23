@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
+from prefect import flow, task
+
 log_format = "%(asctime)s %(levelname)-8s %(message)s"
 logging.basicConfig(
     format=log_format,
@@ -33,8 +35,8 @@ def save_to_pkl(df, filename):
     with open(f"../output/{filename}", "wb") as f_in:
         pickle.dump(df, f_in)
 
-
-def feature_engg_1(df2016_train, df_test, df_items):
+@task(name="preprocessing datasets")
+def preprocess(df2016_train, df_test, df_items):
     """
     Takes pandas dataframes as inputs and add new features
     """
@@ -107,12 +109,12 @@ def get_timespan(df, dt, minus, periods, freq="D"):
     return df[
         pd.date_range(dt - timedelta(days=minus), periods=periods, freq=freq)
     ]
-
-
-def prepare_dataset(df, promo_df, t2017, is_train=True, name_prefix=None):
+@task(name="Feature engineering")
+def feature_engg(df, promo_df, t2017, is_train=True, name_prefix=None):
     """
     Takes pandas dataframes as inputs and add new features
     """
+    logger.info("Adding new features")
     X = {
         "promo_14_2017": get_timespan(promo_df, t2017, 14, 14)
         .sum(axis=1)
@@ -223,8 +225,8 @@ def prepare_dataset(df, promo_df, t2017, is_train=True, name_prefix=None):
         X.columns = ["%s_%s" % (name_prefix, c) for c in X.columns]
     return X
 
-
-def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
+@task(name="prepare train and validation datasets")
+def prepare_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item, df_items):
     """
     Takes pandas dataframes as inputs and add new features.
     Finally collates all the dataframes into X_train, y_train, X_val, y_val and X_test
@@ -234,9 +236,9 @@ def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
     X_l, y_l = [], []
     for i in range(num_days):
         delta = timedelta(days=7 * i)
-        X_tmp, y_tmp = prepare_dataset(df_2017, promo_2017, t2017 + delta)
+        X_tmp, y_tmp = feature_engg(df_2017, promo_2017, t2017 + delta)
 
-        X_tmp2 = prepare_dataset(
+        X_tmp2 = feature_engg(
             df_2017_item,
             promo_2017_item,
             t2017 + delta,
@@ -269,8 +271,8 @@ def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
     del y_train
 
     logger.info("Creating X_val, y_val...")
-    X_val, y_val = prepare_dataset(df_2017, promo_2017, date(2017, 7, 26))
-    X_val2 = prepare_dataset(
+    X_val, y_val = feature_engg(df_2017, promo_2017, date(2017, 7, 26))
+    X_val2 = feature_engg(
         df_2017_item,
         promo_2017_item,
         date(2017, 7, 26),
@@ -320,13 +322,16 @@ def feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item):
     del X_test2, df_2017_item, promo_2017_item
     save_to_pkl(df=X_test, filename="X_test.pkl")
 
-
-if __name__ == "__main__":
+@flow(name="Data-preprocess-feature-engg")
+def main():
     df2016_train = read_parquet_files(filename="../input/df2016_train.parquet")
     df_test = read_parquet_files(filename="../input/df_test_v1.parquet")
-    df_items = read_parquet_files(filename="../input/df_items.parquet")
-    df_2017, promo_2017, df_2017_item, promo_2017_item = feature_engg_1(
-        df2016_train, df_test, df_items
-    )
-    feature_engg_2(df_2017, promo_2017, df_2017_item, promo_2017_item)
+    df_items = read_parquet_files(filename="../input/items.parquet")
+    df_2017, promo_2017, df_2017_item, promo_2017_item = preprocess(
+                                                        df2016_train, df_test, df_items) 
+    
+    prepare_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item, df_items)
     logger.info("All done...")
+
+if __name__ == "__main__":
+    main()

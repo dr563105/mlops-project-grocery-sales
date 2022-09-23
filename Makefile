@@ -1,8 +1,8 @@
 SHELL:=/bin/bash
 
-prerequisites: ## Perform the initial machine configuration
+docker_install: ## Perform the initial machine configuration
 	@sudo apt update
-	@sudo apt install docker.io unzip make -y
+	@sudo apt install docker.io -y
 	@sudo wget https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -O /usr/bin/docker-compose
 	@sudo chmod +x /usr/bin/docker-compose
 
@@ -14,8 +14,7 @@ quality_checks:
 run_tests:
 	pipenv run pytest tests/
 
-setup:
+pipenv_setup:
 	pip install pipenv
-	pipenv install --dev
+	pipenv install 
 	pipenv run pre-commit install
-	pipenv shell
