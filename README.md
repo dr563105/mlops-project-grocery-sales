@@ -14,7 +14,7 @@ The usual MLOPS stages involve model tracking, workflow orchestration, model dep
 In this project, we will however go from data sourcing phase till deployment(end-to-end). At the end we will be able to easily deploy and monitor out model's performance.
 
 ## Plan/tasks
-- [x] Choose/collect dataset
+- [$${\color{black}x}$$] Choose/collect dataset
 - [x] Convert huge raw CSV to parquet file formats
 - [x] Use Kaggle to store preprocessed datasets
 - [x] Preprocess and feature engineer
@@ -22,37 +22,37 @@ In this project, we will however go from data sourcing phase till deployment(end
 - [x] Prepare dataset for model training
 - [x] Implement LGBM model
 - [x] Validate and forecast predictions
-- [] Prefect 2.0 Orion
+- [ ] Prefect 2.0 Orion
     - [x] Do basic workflow orchestration with local API server
     - [x] Use a cloud(AWS) as API server
     - [x] Use local storage to store persisting flow code
     - [] Deploy workflow to production
-- [] MLFlow 
+- [ ] MLFlow 
     - [x] Track experiments local backend(sqlite)
     - [x] Track experiments with a cloud(AWS RDS) backend
     - [x] Store model artifacts in a cloud storage(S3)
-    - [] Register best model to production stage
+    - [ ] Register best model to production stage
 - [x] Deployment
     - [x] As a Flask application with an endpoint
     - [x] As a Lambda function with a handler
     - [x] As a docker container to deploy the lambda function
     - [x] Upload the docker container image to AWS ECR repository
-        - [] Automate build and push process with docker-compose 
+        - [ ] Automate build and push process with docker-compose 
     - [x] Create an AWS Lambda function with ECR image source and test it manually
-    - [] Create a Streamlit UI to test the application 
-- [] Monitor model's performance using a service such as Evidently
-    - [] Use Prometheus and Grafana
-    - [] Use MongoDB to store monitoring logs, reports
-    - [] Implement a prediction service 
-    - [] Check for model or data drift
-- [] Use a tool like Terraform to automate application infrastructure(IaC)
-    - [] Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway 
-- [] CI/CD with Github actions
-    - [] Continuous Integration
+    - [ ] Create a Streamlit UI to test the application 
+- [ ] Monitor model's performance using a service such as Evidently
+    - [ ] Use Prometheus and Grafana
+    - [ ] Use MongoDB to store monitoring logs, reports
+    - [ ] Implement a prediction service 
+    - [ ] Check for model or data drift
+- [ ] Use a tool like Terraform to automate application infrastructure(IaC)
+    - [ ] Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway 
+- [ ] CI/CD with Github actions
+    - [ ] Continuous Integration
         - [x] Unit testing
-        - [] Integration testing with docker-compose
-        - [] Initialise Terraform and prepare for CD
-    - [] Continuous Deployment to deploy the model using Terraform
+        - [ ] Integration testing with docker-compose
+        - [ ] Initialise Terraform and prepare for CD
+    - [ ] Continuous Deployment to deploy the model using Terraform
 
 ## Dataset
 
@@ -77,16 +77,27 @@ Since in year 2016, the feature `onpromotion` contains lot of null values, we el
 
 ### Feature Engineering
 Using the preprocess data, we compute new features.
+
 Basic features: 
+    
     - Categorical features - item, family
+
     - Promotion
+
 Statistical features:
+
     - time windows
+ 
         - nearest days:[3, 7, 14]
+ 
     - key: store x item, item
+ 
     - target: unit_sales
+ 
     - method:
+ 
         - mean, median, max, min, std
+ 
         - difference of mean value between adjacent time windows(only for equal time windows)
 
 ### Model training
@@ -114,7 +125,7 @@ Since it is a regression problem, independent variables serve as input and the t
 ## How to run
 1. Install the pre-requisites:
 ### Miniconda3:
-```
+```bash
 cd ~
 sudo apt update && sudo apt install git wget make unzip -y
 wget -q https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh
@@ -124,34 +135,34 @@ rm Miniconda3-py39_4.12.0-Linux-x86_64.sh # removes the download file
 ```
 Logout of the shell and login to activate conda `base` env. 
 
-```
+```bash
 cd ~
 git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone the repo
 cd mlops-project-grocery-sales 
 make docker_install # install docker, docker-compose 
 ```
 To avoid using `sudo` for docker:
-```
+```bash
 sudo groupadd docker
 sudo usermod -aG docker $USER
 ```
 Logout, restart instance.
 
 2. Setup virtual environment:
-```
+```bash
 cd ~/mlops-project-grocery-sales 
 make pipenv_setup # install Pipenv and other packages in Pipfile. 
 ```
 
 3. Insert Kaggle credentials to download from my kaggle dataset repo:
-```
+```bash
 cd ~ && mkdir ~/.kaggle
 # Download kaggle.json from your kaggle account and place the file inside this directory
 chmod +x kaggle.json
 ```
 
 4. Create input directory and download Kaggle dataset into it:
-```
+```bash
 cd ~/mlops-project-grocery-sales
 mkdir -p input
 cd input/
@@ -161,7 +172,7 @@ unzip grocery-sales-forecasting-parquet.zip
 ```
 
 6. Run data_processing:
-```
+```bash
 cd ~/mlops-project-grocery-sales 
 mkdir -p logs # to store logs
 mkdir -p output # to store train and valid datasets
@@ -174,13 +185,13 @@ python data_preprocess.py
 
 8. Run MLflow with remote tracking and S3 as artifact store:
 ### In terminal 1 
-```
+```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
 ```
 
 Export DB secrets as environment variables.
-```
+```bash
 export DB_USER=""
 export DB_PASSWORD=""
 export DB_ENDPOINT="... .rds.amazonaws.com" 
@@ -189,7 +200,7 @@ export S3_BUCKET_NAME=""
 ```
 
 Run MLFlow
-```
+```bash
 mlflow server -h 0.0.0.0 -p 5000 \
     --backend-store-uri=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_ENDPOINT}:5432/${DB_NAME} \
     --default-artifact-root=s3://${S3_BUCKET_NAME}
@@ -198,7 +209,7 @@ mlflow server -h 0.0.0.0 -p 5000 \
 9. Run Prefect orion server:
 
 ### In terminal 2
-```
+```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
 prefect config set PREFECT_API_URL="http://<external-ip>:4200/api" # external ip is from AWS EC2
@@ -207,7 +218,7 @@ prefect orion start --host 0.0.0.0
 ```
 
 MLFlow dashboard can be found here:
-```
+```bash
 # In a browser open this link
 http://<EC2_PUBLIC_DNS>:5000
 ```
@@ -215,7 +226,7 @@ http://<EC2_PUBLIC_DNS>:5000
 
 10. Run model training:
 ### In terminal 3
-```
+```bash
 cd ~/mlops-project-grocery-sales/
 mkdir -p models # to store models, if mlflow is run locally
 mkdir -p predictions # to store prediction file, if mlflow is run locally
@@ -229,32 +240,32 @@ download it, copy it to both `deployment/deploy-flask` and `deployment/deploy-la
 # Deployment
 ## Flask:
 Basic setup
-```
+```bash
 cd deployment/deploy-flask
 pipenv install # since this directory has a separate Pipfile
 pipenv shell
 ```
 Run test_predict.py and test_requests.py:
-```
+```bash
 python flask_sales_predictor.py # in terminal 1
 python test_predict.py # in terminal 2. To test as a normal python module
 python test_requests.py # in terminal 2. To test with a request endpoint
 ```
 ## Lambda
 Test lambda deployment:
-```
+```bash
 cd ../deploy-lambda
 python lambda_function.py # in terminal 1
 python test_lambda.py # in terminal 2. To test with lambda handler before creating AWS Lambda resource
 ```
 ## Docker
 To containerise:
-```
+```bash
 cd ~/mlops-project-grocery-sales/deploy-lambda
 docker build -t lambda-sales-predictor:v1 .
 ```
 To run it:
-```
+```bash
 docker run -it --rm -p 9696:9696 lambda-sales-predictor:v1 # in terminal 1
 python test_lambda.py # in terminal 2
 ```
@@ -263,7 +274,7 @@ python test_lambda.py # in terminal 2
 We can upload the created, built docker image into AWS ECR. The guide is covered in ML Zoomcamp [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#preparing-the-docker-image). Follow the guide till the end where API gateway is created.
 
 When testing at lambda and API use this JSON dict:
-```
+```json
 {"find": {"date1": "2022-09-15", "store_nbr": 19}}
 ```
 The variable `date1` can be a date between 2022-09-10 and 2022-09-25.
