@@ -137,7 +137,8 @@ RAM: minimum 16GB
 Storage: minimum 30GB
 
 1. Install the pre-requisites:
-### Miniconda3:
+
+**Miniconda3**:
 ```bash
 cd ~
 sudo apt update && sudo apt install git wget make unzip -y
@@ -197,7 +198,8 @@ python data_preprocess.py
 7. Follow aws-rds [guide](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/02-experiment-tracking/mlflow_on_aws.md) to setup AWS EC2 instance and AWS RDS.
 
 8. Run MLflow with remote tracking and S3 as artifact store:
-### In terminal 1 
+
+**In terminal 1**
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
@@ -221,7 +223,7 @@ mlflow server -h 0.0.0.0 -p 5000 \
 
 9. Run Prefect orion server:
 
-### In terminal 2
+**In terminal 2**
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
@@ -240,7 +242,8 @@ http://<EC2_PUBLIC_IP>:5000 # EC2_PUBLIC_IP is from AWS EC2
 ![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
 
 10. Run model training:
-### In terminal 3
+
+**In terminal 3**
 ```bash
 cd ~/mlops-project-grocery-sales/
 mkdir -p models # to store models, if mlflow is run locally
