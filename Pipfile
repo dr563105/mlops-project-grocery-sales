@@ -21,6 +21,8 @@ mlflow = "*"
 boto3 = "*"
 prefect = "*"
 kaggle = "*"
+psycopg2-binary = "*"
+awscli = "*"
 
 [requires]
 python_version = "3.9"

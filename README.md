@@ -125,6 +125,17 @@ Since it is a regression problem, independent variables serve as input and the t
 9. Unit testing especially while deploying models
 
 ## How to run
+### System Requirements
+*To download raw data, preprocess, model* -
+
+Operating System: Ubuntu 20.04 x64 Linux
+
+vCPU: minimum 4 cores(AWS EC2 instance `t2.xlarge` would be sufficient)
+
+RAM: minimum 16GB
+
+Storage: minimum 30GB
+
 1. Install the pre-requisites:
 ### Miniconda3:
 ```bash
@@ -214,7 +225,7 @@ mlflow server -h 0.0.0.0 -p 5000 \
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
-prefect config set PREFECT_API_URL="http://<external-ip>:4200/api" # external ip is from AWS EC2
+prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_DNS>:4200/api" # EC2_PUBLIC_IP is from AWS EC2
 prefect config view # check if it has changed
 prefect orion start --host 0.0.0.0
 ```
@@ -222,9 +233,11 @@ prefect orion start --host 0.0.0.0
 MLFlow dashboard can be found here:
 ```bash
 # In a browser open this link
-http://<EC2_PUBLIC_DNS>:5000
+http://<EC2_PUBLIC_IP>:5000 # EC2_PUBLIC_IP is from AWS EC2 
 ```
-**Note:** Make sure port 4200 and 5000 are added to inbound rules
+**Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database.
+
+![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
 
 10. Run model training:
 ### In terminal 3
@@ -271,15 +284,16 @@ To run it:
 docker run -it --rm -p 9696:9696 lambda-sales-predictor:v1 # in terminal 1
 python test_lambda.py # in terminal 2
 ```
-
 ## Docker, ECR and Lambda
-We can upload the created, built docker image into AWS ECR. The guide is covered in ML Zoomcamp [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#preparing-the-docker-image). Follow the guide till the end where API gateway is created.
+We can upload the created, built docker image into AWS ECR, use it in AWS Lambda, and link an API gateway to trigger the lambda function. 
 
-When testing at lambda and API use this JSON dict:
+A comprehensive guide is covered [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#preparing-the-docker-image) in ML Zoomcamp. 
+
+Further instructions to follow. In the mean time if you know how to configure, go ahead test the pipeline with the following JSON dict
+
 ```json
 {"find": {"date1": "2022-09-15", "store_nbr": 19}}
 ```
-The variable `date1` can be a date between 2022-09-10 and 2022-09-25.
+The variable `date1` can be a date between 2022-09-10 and 2022-09-25. Please follow the exact data format to avoid errors.
 
-
-More updates to follow.s
+More updates to follow.
