@@ -22,5 +22,5 @@ jobs:
       # - name: Run unit tests
         # run: make run_tests
 
-      # - name: Run quality checks
-      #   run: make quality-checks
+      - name: Run quality checks
+        run: make quality-checks

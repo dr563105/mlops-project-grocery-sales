@@ -20,5 +20,5 @@ run_tests:
 
 pipenv_setup:
 	pip install pipenv
-	pipenv install 
+	pipenv install --dev
 	pipenv run pre-commit install

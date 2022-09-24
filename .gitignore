@@ -18,6 +18,4 @@ tryouts/
 *.pytest_cache*
 output/
 .vscode
-Untitled.ipynb
-.env
-.env1
+logs/
