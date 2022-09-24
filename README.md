@@ -14,45 +14,47 @@ The usual MLOPS stages involve model tracking, workflow orchestration, model dep
 In this project, we will however go from data sourcing phase till deployment(end-to-end). At the end we will be able to easily deploy and monitor out model's performance.
 
 ## Plan/tasks
-- [x] Choose/collect dataset
-- [x] Convert huge raw CSV to parquet file formats
-- [x] Use Kaggle to store preprocessed datasets
-- [x] Preprocess and feature engineer
-    - [x] Implement logging
-- [x] Prepare dataset for model training
-- [x] Implement LGBM model
-- [x] Validate and forecast predictions
-- [ ] Prefect 2.0 Orion
-    - [x] Do basic workflow orchestration with local API server
-    - [x] Use a cloud(AWS) as API server
-    - [x] Use local storage to store persisting flow code
-    - [ ] Deploy workflow to production
-- [ ] MLFlow 
-    - [x] Track experiments local backend(sqlite)
-    - [x] Track experiments with a cloud(AWS RDS) backend
-    - [x] Store model artifacts in a cloud storage(S3)
-    - [ ] Register best model to production stage
-- [x] Deployment
-    - [x] As a Flask application with an endpoint
-    - [x] As a Lambda function with a handler
-    - [x] As a docker container to deploy the lambda function
-    - [x] Upload the docker container image to AWS ECR repository
-        - [ ] Automate build and push process with docker-compose 
-    - [x] Create an AWS Lambda function with ECR image source and test it manually
-    - [ ] Create a Streamlit UI to test the application 
-- [ ] Monitor model's performance using a service such as Evidently
-    - [ ] Use Prometheus and Grafana
-    - [ ] Use MongoDB to store monitoring logs, reports
-    - [ ] Implement a prediction service 
-    - [ ] Check for model or data drift
-- [ ] Use a tool like Terraform to automate application infrastructure(IaC)
-    - [ ] Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway 
-- [ ] CI/CD with Github actions
-    - [ ] Continuous Integration
-        - [x] Unit testing
-        - [ ] Integration testing with docker-compose
-        - [ ] Initialise Terraform and prepare for CD
-    - [ ] Continuous Deployment to deploy the model using Terraform
+- ### Data Pre-processing, Feature engineering, Model training, Validation and Prediction
+    - :white_check_mark: Choose/collect dataset
+    - :white_check_mark: Convert huge raw CSV to parquet file formats
+    - :white_check_mark: Use Kaggle to store preprocessed datasets
+    - :white_check_mark: Preprocess and feature engineer
+        - :white_check_mark: Implement logging
+    - :white_check_mark: Prepare dataset for model training
+    - :white_check_mark: Implement LGBM model
+    - :white_check_mark: Validate and forecast predictions
+- ### Prefect 2.0 Orion
+    - :white_check_mark: Do basic workflow orchestration with local API server
+    - :white_check_mark: Use a cloud(AWS) as API server
+    - :white_check_mark: Use local storage to store persisting flow code
+    - :o: Deploy workflow to production
+- ### MLFlow 
+    - :white_check_mark: Track experiments local backend(sqlite)
+    - :white_check_mark: Track experiments with a cloud(AWS RDS) backend
+    - :white_check_mark: Store model artifacts in a cloud storage(S3)
+    - :o: Register best model to production stage
+- ### Deployment
+    - :white_check_mark: As a Flask application with an endpoint
+    - :white_check_mark: As a Lambda function with a handler
+    - :white_check_mark: As a docker container to deploy the lambda function
+    - :white_check_mark: Upload the docker container image to AWS ECR repository
+        - :o: Automate build and push process with docker-compose 
+    - :white_check_mark: Create an AWS Lambda function with ECR image source and test it manually
+    - :o: Create a Streamlit UI to test the application 
+- ### Model Monitoring with Evidently
+    - :o: Use Prometheus and Grafana
+    - :o: Use MongoDB to store monitoring logs, reports
+    - :o: Implement a prediction service 
+    - :o: Check for model or data drift
+- ### Infrastructure as Code(IaC) with Terraform
+    - :o: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway 
+- ### CI/CD with Github actions
+    - Continuous Integration
+        - :white_check_mark: Unit testing
+        - :o: Integration testing with docker-compose
+        - :o: Initialise Terraform and prepare for CD
+    - Continuous Deployment
+        - :o: Automate deployment upon Git pull or push request
 
 ## Dataset
 
