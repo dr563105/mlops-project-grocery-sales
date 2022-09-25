@@ -172,7 +172,13 @@ make pipenv_setup # install Pipenv and other packages in Pipfile.
 ```bash
 cd ~ && mkdir ~/.kaggle
 # Download kaggle.json from your kaggle account and place the file inside this directory
-chmod +x kaggle.json
+cd ~/.kaggle
+chmod 400 kaggle.json
+```
+Or export Kaggle secrets as env variable like so
+```
+export KAGGLE_USERNAME=datadinosaur
+export KAGGLE_KEY=xxxxxxxxxxxxxx
 ```
 
 4. Create input directory and download Kaggle dataset into it:
@@ -183,6 +189,7 @@ cd input/
 pipenv shell
 kaggle datasets download littlesaplings/grocery-sales-forecasting-parquet
 unzip grocery-sales-forecasting-parquet.zip
+(optional) rm -f grocery-sales-forecasting-parquet.zip
 ```
 
 6. Run data_processing:
@@ -197,6 +204,9 @@ python data_preprocess.py
 
 7. Follow aws-rds [guide](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/02-experiment-tracking/mlflow_on_aws.md) to setup AWS EC2 instance and AWS RDS.
 
+**Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database.
+
+![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
 8. Run MLflow with remote tracking and S3 as artifact store:
 
 **In terminal 1**
@@ -227,7 +237,7 @@ mlflow server -h 0.0.0.0 -p 5000 \
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
-prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_DNS>:4200/api" # EC2_PUBLIC_IP is from AWS EC2
+prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_IP>:4200/api" # EC2_PUBLIC_IP is from AWS EC2
 prefect config view # check if it has changed
 prefect orion start --host 0.0.0.0
 ```
@@ -237,9 +247,6 @@ MLFlow dashboard can be found here:
 # In a browser open this link
 http://<EC2_PUBLIC_IP>:5000 # EC2_PUBLIC_IP is from AWS EC2 
 ```
-**Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database.
-
-![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
 
 10. Run model training:
 
