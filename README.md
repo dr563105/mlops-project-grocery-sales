@@ -73,9 +73,7 @@ To know more about parquet files [databricks has a nice summary](https://www.dat
 ## Machine Learning
 
 ### Data Cleaning/preprocessing
-The training dataset contains data from 2016. This data was used to predict the future sales in 2017. However, in our case we will use the same trained model to predict current(2022) sales.
-
-Since in year 2016, the feature `onpromotion` contains lot of null values, we eliminate them and store only data from 2017.
+The training dataset contains data from 2016 to July, 2017. This data was used to predict the future sales in 2017.
 
 ### Feature Engineering
 Using the preprocess data, we compute new features.
@@ -110,7 +108,7 @@ We use LightGBM as our model algorithm. We set the hyperparameters to a default 
 The feature engineering ideas are heavily borrowed from the [1st place solution](https://www.kaggle.com/code/shixw125/1st-place-lgb-model-public-0-506-private-0-511/script) of the competition.
 
 ### Prediction
-Since it is a regression problem, independent variables serve as input and the target variable is unit sales. As input we can supply the store number, a date between '2022-9-10' and '2022-9-25'. An item number is randomly chosen. With these three inputs, unit sales is computed.
+Since it is a regression problem, independent variables serve as input and the target variable is unit sales. As input we can supply the store number, a date between '2017-08-16' and '2017-08-31'. An item number is randomly chosen. With these three inputs, unit sales is computed.
 
 ## MLOPS pipeline
 
@@ -310,8 +308,8 @@ A comprehensive guide is covered [here](https://github.com/alexeygrigorev/aws-la
 Further instructions to follow. In the mean time if you know how to configure, go ahead test the pipeline with the following JSON dict
 
 ```json
-{"find": {"date1": "2022-09-15", "store_nbr": 19}}
+{"find": {"date1": "2017-08-26", "store_nbr": 19}}
 ```
-The variable `date1` can be a date between 2022-09-10 and 2022-09-25. Please follow the exact data format to avoid errors.
+The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please follow the exact data format to avoid errors.
 
 More updates to follow.
