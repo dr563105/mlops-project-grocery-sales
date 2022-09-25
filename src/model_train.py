@@ -8,18 +8,10 @@ import lightgbm as lgb
 from prefect import flow, task
 from sklearn.metrics import mean_squared_error
 
-# logging.basicConfig(
-#     format="%(asctime)s %(levelname)-8s %(message)s",
-#     filename="../logs/log_model_train.log",
-#     level=logging.DEBUG,
-# )
-
-# TRACKING_SERVER_HOST = "http://127.0.0.1" # ec2-54-226-7-218.compute-1.amazonaws.com"
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
-# mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000")
-# postgresql://DB_USER:DB_PASSWORD@DB_ENDPOINT:5432/DB_NAME')
+TRACKING_SERVER_HOST = "ec2-54-147-191-30.compute-1.amazonaws.com"
+mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000")
+# mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_experiment("LGBM-Mlflow-experiment")
-# mlflow.set_tracking_uri('s3://S3_BUCKET_NAME')
 
 
 @task(name="Saving the output")
@@ -38,7 +30,6 @@ def savemodel_to_pkl(input, filename):
     """
     Pickles/Saves model into models directory
     """
-    # logger = prefect.get_run_logger()
     # logger.info(f"Saving {filename}")
     with open(f"../models/{filename}", "wb") as f_in:
         pickle.dump(input, f_in)
@@ -49,7 +40,6 @@ def load_pkl(filename):
     """
     Unpickles/loads file and returns the contents
     """
-    # logger = prefect.get_run_logger()
     # logger.info(f"Reading {filename}...")
     with open(f"../output/{filename}", "rb") as f_out:
         df = pickle.load(f_out)
@@ -92,8 +82,12 @@ def validation_and_prediction(val_pred, y_val, df_2017, items):
         np.expm1(df_val_preds["unit_sales"]), 0, 1000
     )
     logger.info("Saving lgb cv predictions...")
-    df_val_preds.reset_index().to_parquet(
+    df_val_preds.to_parquet(
         "../predictions/lgb_cv.parquet", index=False, engine="pyarrow"
+    )
+    logger.info("Storing the predictions as artifact")
+    mlflow.log_artifact(
+        local_path="../predictions/lgb_cv.parquet", artifact_path="predictions"
     )
 
 
@@ -117,26 +111,27 @@ def model_training():
         param = {
             "objective": "regression",
             "metric": "l2",
-            "verbosity": -1,
+            "verbosity": 1,
             "boosting_type": "gbdt",
-            "n_estimators": 200,
-            "early_stopping_round": 5,
+            "n_estimators": 500,
+            "early_stopping_round": 50,
+            "num_threads": -1,
         }
         param2 = {
-            "num_leaves": 4,  #
+            "num_leaves": 200,  #
             "feature_fraction": 0.7386878356648194,
             "bagging_fraction": 0.8459744550725283,
             "bagging_freq": 1,
-            "max_depth": 2,
+            "max_depth": 4,
             "max_bin": 2,  # 249
             "learning_rate": 0.02,
-            "min_data_in_leaf": 2,  # 200
+            "min_data_in_leaf": 50,  # 200
         }
         param.update(param2)
 
         mlflow.log_params(param)
 
-        MAX_ROUNDS = 1
+        MAX_ROUNDS = 2
         val_pred = []
         # test_pred = []
         cate_vars = []
@@ -164,16 +159,16 @@ def model_training():
                 num_boost_round=MAX_ROUNDS,
                 valid_sets=[dtrain, dval],
             )
-            logger.debug(
-                "\n".join(
-                    ("%s: %.2f" % x)
-                    for x in sorted(
-                        zip(X_train.columns, bst.feature_importance("gain")),
-                        key=lambda x: x[1],
-                        reverse=True,
-                    )
-                )
-            )
+            # logger.debug(
+            #     "\n".join(
+            #         ("%s: %.2f" % x)
+            #         for x in sorted(
+            #             zip(X_train.columns, bst.feature_importance("gain")),
+            #             key=lambda x: x[1],
+            #             reverse=True,
+            #         )
+            #     )
+            # )
 
             val_pred.append(
                 bst.predict(
@@ -190,37 +185,12 @@ def model_training():
         mlflow.lightgbm.log_model(bst, artifact_path="models")
         del X_train
         # save_to_pkl(input=val_pred, filename="val_pred.pkl")
-        # save_to_pkl(input=test_pred, filename="test_pred.pkl")
-        # mlflow.log_artifact("../output/test_pred.pkl", artifact_path="output")
-        # mlflow.lightgbm.log_model(test_pred, artifact_path="output")
+
         validation_and_prediction(
             val_pred=val_pred, y_val=y_val, df_2017=df_2017, items=df_items
         )
         logger.info("All done")
 
-
-# @flow(name="Sales-forecasting-model-train-val")
-# def main():
-#     """
-#     main function: loads variables and invokes other functions
-#     """
-#     X_train = load_pkl("X_train.pkl")
-#     y_train = load_pkl("y_train.pkl")
-#     X_val = load_pkl("X_val.pkl")
-#     y_val = load_pkl("y_val.pkl")
-#     # X_test = load_pkl("X_test.pkl")
-#     items = load_pkl("df_items.pkl")
-#     df_2017 = load_pkl("df_2017.pkl")
-#     # df_test = pd.read_parquet("../input/df_test_v1.parquet", engine="pyarrow")
-#     num_days = 6
-
-#     model_training( X_train=X_train, y_train=y_train, X_val=X_val, y_val=y_val,
-#                     df_items=items,
-#                     df_2017=df_2017,
-#                     num_days=num_days,
-#     )
-
-# logger.info("All done...")
 
 if __name__ == "__main__":
     model_training()

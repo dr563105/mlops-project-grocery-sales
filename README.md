@@ -5,11 +5,11 @@ This repository contains the final capstone project for
 
 ## Project Statement
 
-In Machine Learning Operations(MLOPS) expands the scope beyond just training the model using machine learning. It focuses on making sure trained models work in production. It takes elements from DevOPS and makes certain the production infrastructure is available and reliable.  
+In Machine Learning Operations(MLOPS) expands the scope beyond just training the model using machine learning. It focuses on making sure trained models work in production. It takes elements from DevOPS and makes certain the production infrastructure is available and reliable.
 
 Ideally a MLOPS engineer takes the model, makes a production pipeline to facilitate effective functioning of the model. The pipeline approach allows to introduce/replace new/old technologies without major rework or service downtime. This approach also allows to retrain models regularly and importantly reproducibility.
 
-The usual MLOPS stages involve model tracking, workflow orchestration, model deployment, model monitoring along with best software development practices such as CI/CD. 
+The usual MLOPS stages involve model tracking, workflow orchestration, model deployment, model monitoring along with best software development practices such as CI/CD.
 
 In this project, we will however go from data sourcing phase till deployment(end-to-end). At the end we will be able to easily deploy and monitor out model's performance.
 
@@ -28,7 +28,7 @@ In this project, we will however go from data sourcing phase till deployment(end
     - :white_check_mark: Use a cloud(AWS) as API server
     - :white_check_mark: Use local storage to store persisting flow code
     - :o: Deploy workflow to production
-- ### MLFlow 
+- ### MLFlow
     - :white_check_mark: Track experiments local backend(sqlite)
     - :white_check_mark: Track experiments with a cloud(AWS RDS) backend
     - :white_check_mark: Store model artifacts in a cloud storage(S3)
@@ -38,16 +38,16 @@ In this project, we will however go from data sourcing phase till deployment(end
     - :white_check_mark: As a Lambda function with a handler
     - :white_check_mark: As a docker container to deploy the lambda function
     - :white_check_mark: Upload the docker container image to AWS ECR repository
-        - :o: Automate build and push process with docker-compose 
+        - :o: Automate build and push process with docker-compose
     - :white_check_mark: Create an AWS Lambda function with ECR image source and test it manually
-    - :o: Create a Streamlit UI to test the application 
+    - :o: Create a Streamlit UI to test the application
 - ### Model Monitoring with Evidently
     - :o: Use Prometheus and Grafana
     - :o: Use MongoDB to store monitoring logs, reports
-    - :o: Implement a prediction service 
+    - :o: Implement a prediction service
     - :o: Check for model or data drift
 - ### Infrastructure as Code(IaC) with Terraform
-    - :o: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway 
+    - :o: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway
 - ### CI/CD with Github actions
     - Continuous Integration
         - :white_check_mark: Unit testing
@@ -75,13 +75,13 @@ To know more about parquet files [databricks has a nice summary](https://www.dat
 ### Data Cleaning/preprocessing
 The training dataset contains data from 2016. This data was used to predict the future sales in 2017. However, in our case we will use the same trained model to predict current(2022) sales.
 
-Since in year 2016, the feature `onpromotion` contains lot of null values, we eliminate them and store only data from 2017. 
+Since in year 2016, the feature `onpromotion` contains lot of null values, we eliminate them and store only data from 2017.
 
 ### Feature Engineering
 Using the preprocess data, we compute new features.
 
-Basic features: 
-    
+Basic features:
+
     - Categorical features - item, family
 
     - Promotion
@@ -89,23 +89,23 @@ Basic features:
 Statistical features:
 
     - time windows
- 
+
         - nearest days:[3, 7, 14]
- 
+
     - key: store x item, item
- 
+
     - target: unit_sales
- 
+
     - method:
- 
+
         - mean, median, max, min, std
- 
+
         - difference of mean value between adjacent time windows(only for equal time windows)
 
 ### Model training
 Since we have a bunch of features and single target variable in `unit_sales`, we can consider this as regression problem.
 
-We use LightGBM as our model algorithm. We set the hyperparameters to a default setting and collect as baseline. Then we tune the parameters as needed till we get the best model. 
+We use LightGBM as our model algorithm. We set the hyperparameters to a default setting and collect as baseline. Then we tune the parameters as needed till we get the best model.
 
 The feature engineering ideas are heavily borrowed from the [1st place solution](https://www.kaggle.com/code/shixw125/1st-place-lgb-model-public-0-506-private-0-511/script) of the competition.
 
@@ -147,25 +147,25 @@ bash ~/Miniconda3-py39_4.12.0-Linux-x86_64.sh -b # installs python 3.9
 ~/miniconda3/bin/conda init $SHELL_NAME # initialises conda to bashrc
 rm Miniconda3-py39_4.12.0-Linux-x86_64.sh # removes the download file
 ```
-Logout of the shell and login to activate conda `base` env. 
+Logout of the shell and login to activate conda `base` env.
 
 ```bash
 cd ~
 git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone the repo
-cd mlops-project-grocery-sales 
-make docker_install # install docker, docker-compose 
+cd mlops-project-grocery-sales
+make docker_install # install docker, docker-compose
 ```
 To avoid using `sudo` for docker:
 ```bash
 sudo groupadd docker
 sudo usermod -aG docker $USER
 ```
-Logout, restart instance.
+Logout and log into instance.
 
 2. Setup virtual environment:
 ```bash
-cd ~/mlops-project-grocery-sales 
-make pipenv_setup # install Pipenv and other packages in Pipfile. 
+cd ~/mlops-project-grocery-sales
+make pipenv_setup # install Pipenv and other packages in Pipfile.
 ```
 
 3. Insert Kaggle credentials to download from my kaggle dataset repo:
@@ -194,7 +194,7 @@ unzip grocery-sales-forecasting-parquet.zip
 
 6. Run data_processing:
 ```bash
-cd ~/mlops-project-grocery-sales 
+cd ~/mlops-project-grocery-sales
 mkdir -p logs # to store logs
 mkdir -p output # to store train and valid datasets
 # if not inside Pipenv shell, use `pipenv shell`
@@ -207,6 +207,7 @@ python data_preprocess.py
 **Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database.
 
 ![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
+
 8. Run MLflow with remote tracking and S3 as artifact store:
 
 **In terminal 1**
@@ -219,7 +220,7 @@ Export DB secrets as environment variables.
 ```bash
 export DB_USER=""
 export DB_PASSWORD=""
-export DB_ENDPOINT="... .rds.amazonaws.com" 
+export DB_ENDPOINT="... .rds.amazonaws.com"
 export DB_NAME=""
 export S3_BUCKET_NAME=""
 ```
@@ -230,6 +231,9 @@ mlflow server -h 0.0.0.0 -p 5000 \
     --backend-store-uri=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_ENDPOINT}:5432/${DB_NAME} \
     --default-artifact-root=s3://${S3_BUCKET_NAME}
 ```
+<img src="assets/images/mlflow_scenario_4.png" alt="MLFlow remote tracking server and artifact store" width="80%" height="200"/>
+
+![MLFlow with remote tracking server, backend and artifact stores!](assets/images/mlflow_scenario_4.png "MLFlow remote tracking server and artifact store")
 
 9. Run Prefect orion server:
 
@@ -237,7 +241,7 @@ mlflow server -h 0.0.0.0 -p 5000 \
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
-prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_IP>:4200/api" # EC2_PUBLIC_IP is from AWS EC2
+prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_IP_DNS>:4200/api" # EC2_PUBLIC_IP_DNS is from AWS EC2
 prefect config view # check if it has changed
 prefect orion start --host 0.0.0.0
 ```
@@ -245,7 +249,7 @@ prefect orion start --host 0.0.0.0
 MLFlow dashboard can be found here:
 ```bash
 # In a browser open this link
-http://<EC2_PUBLIC_IP>:5000 # EC2_PUBLIC_IP is from AWS EC2 
+http://<EC2_PUBLIC_IP_DNS>:5000 # EC2_PUBLIC_IP_DNS is from AWS EC2
 ```
 
 10. Run model training:
@@ -261,13 +265,16 @@ python model_train.py
 ```
 
 After completion, go inside `predictions` directory locally or in S3 bucket,
-download it, copy it to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories. Rename it as `lgb_predictions_wo_family.parquet`
+download it, copy it to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories. Rename it as `lgb_predictions_wo_family_v2.parquet`
+
 # Deployment
+As we move to deployment and it takes a separe `Pipfile`, it would be best all the opened terminal windows be closed and new ones opened for this section.
+
 ## Flask:
 Basic setup
 ```bash
-cd deployment/deploy-flask
-pipenv install # since this directory has a separate Pipfile
+cd ~/mlops-project-grocery-sales/deployment/deploy-flask
+pipenv install --dev # since this directory has a separate Pipfile
 pipenv shell
 ```
 Run test_predict.py and test_requests.py:
@@ -279,7 +286,10 @@ python test_requests.py # in terminal 2. To test with a request endpoint
 ## Lambda
 Test lambda deployment:
 ```bash
-cd ../deploy-lambda
+cd ~/mlops-project-grocery-sales/deploy-lambda
+# Exit out of flask venv and create new one for lambda testing
+pipenv install --dev
+pipenv shell
 python lambda_function.py # in terminal 1
 python test_lambda.py # in terminal 2. To test with lambda handler before creating AWS Lambda resource
 ```
@@ -295,9 +305,9 @@ docker run -it --rm -p 9696:9696 lambda-sales-predictor:v1 # in terminal 1
 python test_lambda.py # in terminal 2
 ```
 ## Docker, ECR and Lambda
-We can upload the created, built docker image into AWS ECR, use it in AWS Lambda, and link an API gateway to trigger the lambda function. 
+We can upload the created, built docker image into AWS ECR, use it in AWS Lambda, and link an API gateway to trigger the lambda function.
 
-A comprehensive guide is covered [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#preparing-the-docker-image) in ML Zoomcamp. 
+A comprehensive guide is covered [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#preparing-the-docker-image) in ML Zoomcamp.
 
 Further instructions to follow. In the mean time if you know how to configure, go ahead test the pipeline with the following JSON dict
 

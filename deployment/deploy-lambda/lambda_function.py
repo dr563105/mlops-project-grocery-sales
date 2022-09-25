@@ -9,7 +9,7 @@ def read_parquet_files(filename):
     return df
 
 
-df_test_preds = read_parquet_files("lgb_predictions_wo_family.parquet")
+df_test_preds = read_parquet_files("lgb_predictions_wo_family_v1.parquet")
 
 df_items = read_parquet_files("items.parquet")
 

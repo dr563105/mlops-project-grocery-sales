@@ -10,7 +10,8 @@ def read_parquet_files(filename):
     return df
 
 
-df_test_preds = read_parquet_files("lgb_predictions_wo_family.parquet")
+df_test_preds = read_parquet_files("lgb_predictions_wo_family_v1.parquet")
+print(df_test_preds.index)
 
 df_items = read_parquet_files("items.parquet")
 
@@ -23,11 +24,13 @@ def predict(find, item):
     """
     idx = pd.IndexSlice
     # df_items.sample(1).index[0]
-    x = df_test_preds.loc[idx[find["store_nbr"], item, find["date1"]]][
-        "unit_sales"
-    ]
+    print(f"item inside predict function:{item}")
+    print(f"Store is: {find['store_nbr']}")
+    print(f"date is: {find['date1']}")
+    print(f"loc is: {idx[find['store_nbr'], item, find['date1']]}")
+    # x = df_test_preds.loc[idx[find["store_nbr"], item, find["date1"]]]["unit_sales"]
 
-    return float(round(x, 2))
+    return 1.1  # float(round(x, 2))
 
 
 @app.route("/predict-sales", methods=["POST"])

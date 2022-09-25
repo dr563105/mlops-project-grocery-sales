@@ -9,7 +9,7 @@ COPY [ "Pipfile", "Pipfile.lock", "./" ]
 
 RUN pipenv install --system --deploy
 
-COPY [ "lgb_predictions_wo_family.parquet" , "lgb_predictions_wo_family.parquet" ]
+COPY [ "lgb_predictions_wo_family_v2.parquet" , "lgb_predictions_wo_family_v2.parquet" ]
 COPY [ "items.parquet" , "items.parquet" ]
 
 COPY ["flask_sales_predictor.py", "flask_sales_predictor.py"]
