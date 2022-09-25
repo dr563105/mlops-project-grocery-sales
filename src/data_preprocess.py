@@ -22,7 +22,6 @@ def read_parquet_files(filename):
     """
     logger.info(f"Reading {filename}")
     df = pd.read_parquet(filename, engine="pyarrow")
-    # df_stores = pd.read_parquet('../input/stores.parquet',engine='pyarrow')
     return df
 
 
@@ -93,16 +92,16 @@ def feature_engg(df, promo_df, t2017, is_train=True, name_prefix=None):
     Takes pandas dataframes as inputs and add new features
     """
     X = {
-        #    "promo_14_2017": get_timespan(promo_df, t2017, 14, 14).sum(axis=1).values,
-        # "promo_60_2017": get_timespan(promo_df, t2017, 60, 60).sum(axis=1).values,
-        # "promo_140_2017": get_timespan(promo_df, t2017, 140, 140).sum(axis=1).values,
+        "promo_14_2017": get_timespan(promo_df, t2017, 14, 14).sum(axis=1).values,
+        "promo_60_2017": get_timespan(promo_df, t2017, 60, 60).sum(axis=1).values,
+        "promo_140_2017": get_timespan(promo_df, t2017, 140, 140).sum(axis=1).values,
         "promo_3_2017_aft": get_timespan(
             promo_df, t2017 + timedelta(days=16), 15, 3
         )
         .sum(axis=1)
         .values,
-        # "promo_7_2017_aft": get_timespan(promo_df, t2017 + timedelta(days=16), 15, 7).sum(axis=1).values,
-        # "promo_14_2017_aft": get_timespan(promo_df, t2017 + timedelta(days=16), 15, 14).sum(axis=1).values,
+        "promo_7_2017_aft": get_timespan(promo_df, t2017 + timedelta(days=16), 15, 7).sum(axis=1).values,
+        "promo_14_2017_aft": get_timespan(promo_df, t2017 + timedelta(days=16), 15, 14).sum(axis=1).values,
     }
 
     for i in [3, 7, 14]:
@@ -173,9 +172,7 @@ def feature_engg(df, promo_df, t2017, is_train=True, name_prefix=None):
 
 
 @task(name="prepare train and validation datasets")
-def prepare_dataset(
-    df_2017, promo_2017, df_2017_item, promo_2017_item, df_items
-):
+def prepare_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item, df_items):
     """
     Takes pandas dataframes as inputs and add new features.
     Finally collates all the dataframes into X_train, y_train, X_val, y_val and X_test
@@ -236,16 +233,17 @@ def prepare_dataset(
     save_to_pkl(df=y_val, filename="y_val.pkl")
     del y_val
 
-    # logger.info("Creating X_test...")
-    # X_test = feature_engg(df_2017, promo_2017, date(2017, 8, 16), is_train=False)
-    # X_test2 = feature_engg(df_2017_item, promo_2017_item, date(2017, 8, 16), is_train=False, name_prefix="item")
-    # X_test2.index = df_2017_item.index
-    # X_test2 = X_test2.reindex(df_2017.index.get_level_values(1)).reset_index(drop=True)
+    logger.info("Creating X_test...")
+    X_test = feature_engg(df_2017, promo_2017, date(2017, 8, 16), is_train=False)
+    X_test2 = feature_engg(df_2017_item, promo_2017_item, date(2017, 8, 16), is_train=False, name_prefix="item")
+    X_test2.index = df_2017_item.index
+    X_test2 = X_test2.reindex(df_2017.index.get_level_values(1)).reset_index(drop=True)
 
-    # X_test = pd.concat([X_test, X_test2, df_items.reset_index()], axis=1)
+    X_test = pd.concat([X_test, X_test2, df_items.reset_index()], axis=1)
 
-    # del X_test2, df_2017_item, promo_2017_item
-    # save_to_pkl(df=X_test, filename="X_test.pkl")
+    del X_test2, df_2017_item, promo_2017_item
+    save_to_pkl(df=X_test, filename="X_test.pkl")
+    del X_test
 
 
 @flow(name="Data-preprocess-feature-engg")
@@ -254,7 +252,7 @@ def main():
     Main function
     """
     df2016_train = read_parquet_files(filename="../input/df2016_train.parquet")
-    df_test = read_parquet_files(filename="../input/df_test_v1.parquet")
+    df_test = read_parquet_files(filename="../input/df_test.parquet")
     df_items = read_parquet_files(filename="../input/items.parquet")
     df_2017, promo_2017, df_2017_item, promo_2017_item = preprocess(
         df2016_train, df_test, df_items

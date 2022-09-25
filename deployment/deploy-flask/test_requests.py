@@ -1,6 +1,6 @@
 import requests
 
-find = {"date1": "2022-09-15", "store_nbr": 19}
+find = {"date1": "2017-08-21", "store_nbr": 19}
 
 print(find["date1"])
 url = "http://localhost:9696/predict-sales"

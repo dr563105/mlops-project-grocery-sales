@@ -160,7 +160,7 @@ To avoid using `sudo` for docker:
 sudo groupadd docker
 sudo usermod -aG docker $USER
 ```
-Logout and log into instance.
+Logout and log in back to the instance.
 
 2. Setup virtual environment:
 ```bash
@@ -231,7 +231,6 @@ mlflow server -h 0.0.0.0 -p 5000 \
     --backend-store-uri=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_ENDPOINT}:5432/${DB_NAME} \
     --default-artifact-root=s3://${S3_BUCKET_NAME}
 ```
-<img src="assets/images/mlflow_scenario_4.png" alt="MLFlow remote tracking server and artifact store" width="80%" height="200"/>
 
 ![MLFlow with remote tracking server, backend and artifact stores!](assets/images/mlflow_scenario_4.png "MLFlow remote tracking server and artifact store")
 
@@ -279,8 +278,8 @@ pipenv shell
 ```
 Run test_predict.py and test_requests.py:
 ```bash
+python test_predict.py # in terminal 1. To test as a normal python module
 python flask_sales_predictor.py # in terminal 1
-python test_predict.py # in terminal 2. To test as a normal python module
 python test_requests.py # in terminal 2. To test with a request endpoint
 ```
 ## Lambda
@@ -290,8 +289,7 @@ cd ~/mlops-project-grocery-sales/deploy-lambda
 # Exit out of flask venv and create new one for lambda testing
 pipenv install --dev
 pipenv shell
-python lambda_function.py # in terminal 1
-python test_lambda.py # in terminal 2. To test with lambda handler before creating AWS Lambda resource
+python test_lambda.py # in terminal 1. To test with lambda handler before creating AWS Lambda resource
 ```
 ## Docker
 To containerise:

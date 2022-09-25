@@ -1,6 +1,6 @@
 import flask_sales_predictor
 
-find = {"date1": "2022-09-19", "store_nbr": 19}
+find = {"date1": "2017-08-29", "store_nbr": 19}
 df_items = flask_sales_predictor.read_parquet_files("items.parquet")
 item = df_items.sample(1).index[0]
 print(f"item:{item}")

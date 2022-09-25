@@ -10,8 +10,7 @@ def read_parquet_files(filename):
     return df
 
 
-df_test_preds = read_parquet_files("lgb_predictions_wo_family_v1.parquet")
-print(df_test_preds.index)
+df_test_preds = read_parquet_files("lgb_preds_sep26.parquet")
 
 df_items = read_parquet_files("items.parquet")
 
@@ -24,13 +23,9 @@ def predict(find, item):
     """
     idx = pd.IndexSlice
     # df_items.sample(1).index[0]
-    print(f"item inside predict function:{item}")
-    print(f"Store is: {find['store_nbr']}")
-    print(f"date is: {find['date1']}")
-    print(f"loc is: {idx[find['store_nbr'], item, find['date1']]}")
-    # x = df_test_preds.loc[idx[find["store_nbr"], item, find["date1"]]]["unit_sales"]
+    x = df_test_preds.loc[idx[find["store_nbr"], item, find["date1"]]]["unit_sales"]
 
-    return 1.1  # float(round(x, 2))
+    return float(round(x, 2))
 
 
 @app.route("/predict-sales", methods=["POST"])
@@ -39,11 +34,10 @@ def predict_endpoint():
     flask predict endpoint
     """
     find = request.get_json()
-    print(f"find is {find}")
     item = df_items.sample(1).index[0]
     pred_unit_sales = predict(find, item)
     if pred_unit_sales == 0.0:
-        print("item either not found or price couldn't be predicted")
+        print("item either not found or units couldn't be predicted")
     result = {
         "store_nbr": find["store_nbr"],
         "item": int(item),

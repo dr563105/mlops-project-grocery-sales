@@ -8,8 +8,7 @@ output/
 sample/
 docker-compose
 *.parquet
-!lgb_predictions_wo_family_v1.parquet
-!lgb_predictions_wo_family_v2.parquet
+!lgb_preds.parquet
 !items.parquet
 *__pycache__*
 **/.terraform/*
