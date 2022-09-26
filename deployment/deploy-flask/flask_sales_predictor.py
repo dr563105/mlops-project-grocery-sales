@@ -18,14 +18,13 @@ df_items = read_parquet_files("items.parquet")
 app = Flask("flask-unit-sales-prediction")
 
 
-def predict(find, item):
+def predict(find, item_idx):
     """
     Takes the json inputs, processes it and outputs the unit sales
     """
     idx = pd.IndexSlice
     # df_items.sample(1).index[0]
-    # print(f"find['store_nbr", item, find['date1'])
-    x = df_test_preds.loc[idx[find["store_nbr"], item, find["date1"]]][
+    x = df_test_preds.loc[idx[find["store_nbr"], item_idx, find["date1"]]][
         "unit_sales"
     ]
 
@@ -38,15 +37,17 @@ def predict_endpoint():
     flask predict endpoint
     """
     find = request.get_json()
-    item = df_items.sample(1).index[0]
-    pred_unit_sales = predict(find, item)
+    item = df_items.sample(1)
+    item_idx, item_family = item.index[0], item["family"].values[0]
+    pred_unit_sales = predict(find, item_idx)
     if pred_unit_sales == 0.0:
         print("item either not found or units couldn't be predicted")
     result = {
         "store_nbr": find["store_nbr"],
-        "item": int(item),
-        "Prediction date": find["date1"],
-        "unit_sales": pred_unit_sales,
+        "item": int(item_idx),
+        "family": item_family,
+        "prediction date": find["date1"],
+        "predicted unit_sales": pred_unit_sales,
     }
 
     return jsonify(result)
