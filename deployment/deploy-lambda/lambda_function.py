@@ -18,7 +18,7 @@ def predict(find, item):
     """
     Takes the json inputs, processes it and outputs the unit sales
     """
-    print("inside predict function")
+    # print("inside predict function")
     idx = pd.IndexSlice
     # df_items.sample(1).index[0]
     x = df_test_preds.loc[idx[find["store_nbr"], item, find["date1"]]][
@@ -34,9 +34,9 @@ def lambda_handler(event, context=None):
     """
 
     find = event["find"]
-    print(f"find is {find}")
+    # print(f"find is {find}")
     item = df_items.sample(1).index[0]
-    print("calling predict method")
+    # print("calling predict method")
     pred_unit_sales = predict(find, item)
 
     if pred_unit_sales == 0.0:

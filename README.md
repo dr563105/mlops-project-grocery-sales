@@ -154,6 +154,7 @@ cd mlops-project-grocery-sales
 make docker_install # install docker, docker-compose
 ```
 To avoid using `sudo` for docker:
+
 ```bash
 sudo groupadd docker
 sudo usermod -aG docker $USER
@@ -161,12 +162,14 @@ sudo usermod -aG docker $USER
 Logout and log in back to the instance.
 
 2. Setup virtual environment:
+
 ```bash
 cd ~/mlops-project-grocery-sales
 make pipenv_setup # install Pipenv and other packages in Pipfile.
 ```
 
 3. Insert Kaggle credentials to download from my kaggle dataset repo:
+
 ```bash
 cd ~ && mkdir ~/.kaggle
 # Download kaggle.json from your kaggle account and place the file inside this directory
@@ -180,35 +183,51 @@ export KAGGLE_KEY=xxxxxxxxxxxxxx
 ```
 
 4. Create input directory and download Kaggle dataset into it:
+
 ```bash
-cd ~/mlops-project-grocery-sales
-mkdir -p input
-cd input/
+cd ~/mlops-project-grocery-sales && mkdir -p input logs output models predictions
 pipenv shell
+cd input/
 kaggle datasets download littlesaplings/grocery-sales-forecasting-parquet
 unzip grocery-sales-forecasting-parquet.zip
 (optional) rm -f grocery-sales-forecasting-parquet.zip
 ```
+5. Follow aws-rds [guide](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/02-experiment-tracking/mlflow_on_aws.md) to setup AWS EC2 instance, S3 bucket and AWS RDS for Mlflow tracking server.
 
-6. Run data_processing:
+**Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database. Port `4200` is for Prefect, `5000` Mlflow, `5432` PostgresDB.
+
+![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
+
+6. Run Prefect orion server:
+
+**In terminal 1**
+```bash
+cd ~/mlops-project-grocery-sales/
+# if not inside Pipenv shell, use `pipenv shell`
+prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_IP>:4200/api" # EC2_PUBLIC_IP is from AWS EC2
+prefect config view # check if it has changed
+prefect orion start --host 0.0.0.0
+```
+
+MLFlow dashboard can be found here:
+```bash
+# In a browser open this link
+http://<EC2_PUBLIC_IP_DNS>:5000 # EC2_PUBLIC_IP_DNS is from AWS EC2
+```
+
+7. Run data_processing:
+
+**In terminal 2**
 ```bash
 cd ~/mlops-project-grocery-sales
-mkdir -p logs # to store logs
-mkdir -p output # to store train and valid datasets
 # if not inside Pipenv shell, use `pipenv shell`
 cd src/
 python data_preprocess.py
 ```
 
-7. Follow aws-rds [guide](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/02-experiment-tracking/mlflow_on_aws.md) to setup AWS EC2 instance and AWS RDS.
-
-**Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database.
-
-![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
-
 8. Run MLflow with remote tracking and S3 as artifact store:
 
-**In terminal 1**
+**In terminal 3**
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
@@ -232,37 +251,19 @@ mlflow server -h 0.0.0.0 -p 5000 \
 
 ![MLFlow with remote tracking server, backend and artifact stores!](assets/images/mlflow_scenario_4.png "MLFlow remote tracking server and artifact store")
 
-9. Run Prefect orion server:
+
+9. Run model training:
 
 **In terminal 2**
 ```bash
 cd ~/mlops-project-grocery-sales/
-# if not inside Pipenv shell, use `pipenv shell`
-prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_IP_DNS>:4200/api" # EC2_PUBLIC_IP_DNS is from AWS EC2
-prefect config view # check if it has changed
-prefect orion start --host 0.0.0.0
-```
-
-MLFlow dashboard can be found here:
-```bash
-# In a browser open this link
-http://<EC2_PUBLIC_IP_DNS>:5000 # EC2_PUBLIC_IP_DNS is from AWS EC2
-```
-
-10. Run model training:
-
-**In terminal 3**
-```bash
-cd ~/mlops-project-grocery-sales/
-mkdir -p models # to store models, if mlflow is run locally
-mkdir -p predictions # to store prediction file, if mlflow is run locally
 # if not inside Pipenv shell, use `pipenv shell`
 cd src
 python model_train.py
 ```
 
 After completion, go inside `predictions` directory locally or in S3 bucket,
-download it, copy it to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories. Rename it as `lgb_predictions_wo_family_v2.parquet`
+download it, copy it to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories. Rename it as `lgb_preds.parquet`
 
 # Deployment
 As we move to deployment and it takes a separe `Pipfile`, it would be best all the opened terminal windows be closed and new ones opened for this section.

@@ -7,7 +7,7 @@ COPY [ "Pipfile", "Pipfile.lock", "./" ]
 
 RUN pipenv install --system --deploy
 
-COPY [ "lgb_predictions_wo_family_v2.parquet" , "lgb_predictions_wo_family_v2.parquet" ]
+COPY [ "lgb_preds.parquet" , "lgb_preds.parquet" ]
 COPY [ "items.parquet" , "items.parquet" ]
 
 COPY [ "lambda_function.py", "lambda_function.py" ]

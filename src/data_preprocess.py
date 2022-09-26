@@ -1,26 +1,27 @@
 import pickle
-import logging
 from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
+import prefect
 from prefect import flow, task
 from sklearn.preprocessing import LabelEncoder
 
-log_format = "%(asctime)s %(levelname)-8s %(message)s"
-logging.basicConfig(
-    format=log_format,
-    filename="../logs/log_preprocess.log",
-    level=logging.DEBUG,
-)
-logger = logging.getLogger()
+# log_format = "%(asctime)s %(levelname)-8s %(message)s"
+# logging.basicConfig(
+#     format=log_format,
+#     filename="../logs/log_preprocess.log",
+#     level=logging.DEBUG,
+# )
+# logging.getLogger()
 
 
 def read_parquet_files(filename):
     """
     Read parquet file format for given filename and returns the contents
     """
-    logger.info(f"Reading {filename}")
+    # logger = prefect.get_run_logger()
+    # logger.info(f"Reading {filename}")
     df = pd.read_parquet(filename, engine="pyarrow")
     return df
 
@@ -29,6 +30,7 @@ def save_to_pkl(df, filename):
     """
     Pickles/Saves content into a file
     """
+    logger = prefect.get_run_logger()
     logger.info(f"Saving {filename}")
     with open(f"../output/{filename}", "wb") as f_in:
         pickle.dump(df, f_in)
@@ -39,6 +41,7 @@ def preprocess(df2016_train, df_test, df_items):
     """
     Takes pandas dataframes as inputs and add new features
     """
+    logger = prefect.get_run_logger()
     le = LabelEncoder()
 
     df_items["family"] = le.fit_transform(df_items["family"].to_numpy())
@@ -92,16 +95,30 @@ def feature_engg(df, promo_df, t2017, is_train=True, name_prefix=None):
     Takes pandas dataframes as inputs and add new features
     """
     X = {
-        "promo_14_2017": get_timespan(promo_df, t2017, 14, 14).sum(axis=1).values,
-        "promo_60_2017": get_timespan(promo_df, t2017, 60, 60).sum(axis=1).values,
-        "promo_140_2017": get_timespan(promo_df, t2017, 140, 140).sum(axis=1).values,
+        "promo_14_2017": get_timespan(promo_df, t2017, 14, 14)
+        .sum(axis=1)
+        .values,
+        "promo_60_2017": get_timespan(promo_df, t2017, 60, 60)
+        .sum(axis=1)
+        .values,
+        "promo_140_2017": get_timespan(promo_df, t2017, 140, 140)
+        .sum(axis=1)
+        .values,
         "promo_3_2017_aft": get_timespan(
             promo_df, t2017 + timedelta(days=16), 15, 3
         )
         .sum(axis=1)
         .values,
-        "promo_7_2017_aft": get_timespan(promo_df, t2017 + timedelta(days=16), 15, 7).sum(axis=1).values,
-        "promo_14_2017_aft": get_timespan(promo_df, t2017 + timedelta(days=16), 15, 14).sum(axis=1).values,
+        "promo_7_2017_aft": get_timespan(
+            promo_df, t2017 + timedelta(days=16), 15, 7
+        )
+        .sum(axis=1)
+        .values,
+        "promo_14_2017_aft": get_timespan(
+            promo_df, t2017 + timedelta(days=16), 15, 14
+        )
+        .sum(axis=1)
+        .values,
     }
 
     for i in [3, 7, 14]:
@@ -172,11 +189,14 @@ def feature_engg(df, promo_df, t2017, is_train=True, name_prefix=None):
 
 
 @task(name="prepare train and validation datasets")
-def prepare_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item, df_items):
+def prepare_dataset(
+    df_2017, promo_2017, df_2017_item, promo_2017_item, df_items
+):
     """
     Takes pandas dataframes as inputs and add new features.
     Finally collates all the dataframes into X_train, y_train, X_val, y_val and X_test
     """
+    logger = prefect.get_run_logger()
     t2017 = date(2017, 6, 14)
     num_days = 6
     X_l, y_l = [], []
@@ -234,10 +254,20 @@ def prepare_dataset(df_2017, promo_2017, df_2017_item, promo_2017_item, df_items
     del y_val
 
     logger.info("Creating X_test...")
-    X_test = feature_engg(df_2017, promo_2017, date(2017, 8, 16), is_train=False)
-    X_test2 = feature_engg(df_2017_item, promo_2017_item, date(2017, 8, 16), is_train=False, name_prefix="item")
+    X_test = feature_engg(
+        df_2017, promo_2017, date(2017, 8, 16), is_train=False
+    )
+    X_test2 = feature_engg(
+        df_2017_item,
+        promo_2017_item,
+        date(2017, 8, 16),
+        is_train=False,
+        name_prefix="item",
+    )
     X_test2.index = df_2017_item.index
-    X_test2 = X_test2.reindex(df_2017.index.get_level_values(1)).reset_index(drop=True)
+    X_test2 = X_test2.reindex(df_2017.index.get_level_values(1)).reset_index(
+        drop=True
+    )
 
     X_test = pd.concat([X_test, X_test2, df_items.reset_index()], axis=1)
 
@@ -251,6 +281,7 @@ def main():
     """
     Main function
     """
+    logger = prefect.get_run_logger()
     df2016_train = read_parquet_files(filename="../input/df2016_train.parquet")
     df_test = read_parquet_files(filename="../input/df_test.parquet")
     df_items = read_parquet_files(filename="../input/items.parquet")
