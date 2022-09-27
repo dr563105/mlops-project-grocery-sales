@@ -128,19 +128,16 @@ Storage: minimum 10GB
 **Miniconda3**:
 
 ```bash
-
 cd ~ && git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone the repo 
 sudo apt update && sudo apt install make -y
 cd mlops-project-grocery-sales 
-make conda_install # downloads miniconda3, installs and initialises the env
+make conda_docker_install # downloads and installs miniconda3, docker, docker-compose
 ```
-Logout of the shell and login to activate conda `base` env.
-
-```bash
-make docker_install # installs docker, docker-compose and adds docker to user gropu
+Logout and log in back to the instance. Now the `base` conda env would've been activated. 
+(Optional) Test if docker is working:
 ```
-
-Logout and log in back to the instance.
+docker run hello-world # show return hello world without errors
+``` 
 
 2. Setup virtual environment:
 
@@ -149,16 +146,8 @@ cd ~/mlops-project-grocery-sales
 make pipenv_setup # install Pipenv and other packages in Pipfile.
 ```
 
-3. Insert Kaggle credentials to download from my kaggle dataset repo:
+3. Export Kaggle secrets as env variables to download the dataset:
 
-```bash
-cd ~ && mkdir ~/.kaggle
-# Download kaggle.json from your kaggle account and place the file inside this directory
-cd ~/.kaggle
-chmod 400 kaggle.json
-```
-
-Or export Kaggle secrets as env variable like so
 ```
 export KAGGLE_USERNAME=datadinosaur
 export KAGGLE_KEY=xxxxxxxxxxxxxx
@@ -167,12 +156,8 @@ export KAGGLE_KEY=xxxxxxxxxxxxxx
 4. Create input directory and download Kaggle dataset into it:
 
 ```bash
-cd ~/mlops-project-grocery-sales && mkdir -p input logs output models predictions
-pipenv shell
-cd input/
-kaggle datasets download littlesaplings/grocery-sales-forecasting-parquet
-unzip grocery-sales-forecasting-parquet.zip
-(optional) rm grocery-sales-forecasting-parquet.zip
+cd ~/mlops-project-grocery-sales 
+make kaggle_dataset_download
 ```
 
 5. Follow aws-rds [guide](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/02-experiment-tracking/mlflow_on_aws.md) to setup AWS EC2 instance, S3 bucket and AWS RDS for Mlflow tracking server.
@@ -186,18 +171,8 @@ unzip grocery-sales-forecasting-parquet.zip
 **In terminal 1**
 
 ```bash
-cd ~/mlops-project-grocery-sales/
-# if not inside Pipenv shell, use `pipenv shell`
-prefect config set PREFECT_API_URL="http://<EC2_PUBLIC_IP>:4200/api" # EC2_PUBLIC_IP is from AWS EC2
-prefect config view # check if it has changed
-prefect orion start --host 0.0.0.0
-```
-
-MLFlow dashboard can be found here:
-
-```bash
-# In a browser open this link
-http://<EC2_PUBLIC_IP_DNS>:5000 # EC2_PUBLIC_IP_DNS is from AWS EC2
+export EC2_IP="" # replace double quotes with the EC2 IP address
+make setup_prefect && make start_prefect
 ```
 
 7. Run data_processing:
@@ -205,27 +180,19 @@ http://<EC2_PUBLIC_IP_DNS>:5000 # EC2_PUBLIC_IP_DNS is from AWS EC2
 **In terminal 2**
 
 ```bash
-cd ~/mlops-project-grocery-sales
-# if not inside Pipenv shell, use `pipenv shell`
-cd src/
-python data_preprocess.py
+make run_data_preprocess # runs preprocessing script. Training, validation datasets are created.
 ```
 
 8. Run MLflow with remote tracking and S3 as artifact store:
 
 **In terminal 3**
 
-```bash
-cd ~/mlops-project-grocery-sales/
-# if not inside Pipenv shell, use `pipenv shell`
-```
-
-Export DB secrets as environment variables.
+Export DB secrets as environment variables. Replace double quotes with values got while setting up RDS into the variables.
 
 ```bash
 export DB_USER=""
 export DB_PASSWORD=""
-export DB_ENDPOINT="... .rds.amazonaws.com"
+export DB_ENDPOINT=""
 export DB_NAME=""
 export S3_BUCKET_NAME=""
 ```
@@ -233,27 +200,26 @@ export S3_BUCKET_NAME=""
 Run MLFlow
 
 ```bash
-mlflow server -h 0.0.0.0 -p 5000 \
-    --backend-store-uri=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_ENDPOINT}:5432/${DB_NAME} \
-    --default-artifact-root=s3://${S3_BUCKET_NAME}
+make start_mlflow
 ```
 
 ![MLFlow with remote tracking server, backend and artifact stores!](assets/images/mlflow_scenario_4.png "MLFlow remote tracking server and artifact store")
 
+MLFlow dashboard can be seen at `http://<EC2_PUBLIC_IP_DNS>:5000`
 
 9. Run model training:
 
 **In terminal 2**
 
 ```bash
-cd ~/mlops-project-grocery-sales/
-# if not inside Pipenv shell, use `pipenv shell`
-cd src
-python model_train.py
+export EC2_IP="" # replace double quotes with the EC2 IP address
+make run_model_training
 ```
 
-After completion, go inside `predictions` directory locally or in S3 bucket,
-download it, copy it to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories. Rename it as `lgb_preds.parquet`
+Copy predictions to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories. 
+```
+make copy_preds
+```
 
 # Deployment
 As we move to deployment and it takes a separe `Pipfile`, it would be best all the opened terminal windows be closed and new ones opened for this section.

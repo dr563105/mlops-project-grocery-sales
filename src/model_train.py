@@ -1,5 +1,5 @@
 import pickle
-
+import os
 import numpy as np
 import mlflow
 import pandas as pd
@@ -8,8 +8,8 @@ import lightgbm as lgb
 from prefect import flow, task
 from sklearn.metrics import mean_squared_error
 
-TRACKING_SERVER_HOST = "ec2-54-234-110-225.compute-1.amazonaws.com"
-mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000")
+tracking_server = os.getenv("EC2_IP") #"ec2-54-234-110-225.compute-1.amazonaws.com"
+mlflow.set_tracking_uri(f"http://{tracking_server}:5000")
 # mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_experiment("LGBM-Mlflow-experiment")
 
