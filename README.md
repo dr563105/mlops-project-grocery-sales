@@ -1,11 +1,11 @@
 # Grocery Sales Forcasting
 
 This repository contains the final capstone project for
-[Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). This is an end-to-end ML project which takes raw data as the first stage and delivers the model into production as the last stage with a lot of infrastructure interaction inbetween.
+[Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). This is an end-to-end ML project which takes raw data as the first stage and delivers the model into production as the last stage with a lot of infrastructure interactions in-between.
 
 ## Project Statement
 
-The sale department of a grocery chain wants to build a unit sales prediction engine(a web service application). The engine will use past sales data from all its stores to forecast future item unit sales. The engine will provide the sales department necessary time to stock up on exhausting items or stock less on diminishing items. The grocery chain would then be able to allocate more/less resources to certain stores.
+The sales department of a grocery chain wants to build a unit sales prediction engine(a web service application). The engine will use past sales data from all its stores to forecast future item unit sales. The engine will provide the sales department necessary time to stock up on exhausting items or stock less on diminishing items. The grocery chain would then be able to allocate more/less resources to certain stores.
 
 ## Plan/tasks
 - ### Data Pre-processing, Feature engineering, Model training, Validation and Prediction
@@ -21,7 +21,6 @@ The sale department of a grocery chain wants to build a unit sales prediction en
     - :white_check_mark: Do basic workflow orchestration with local API server
     - :white_check_mark: Use a cloud(AWS) as API server
     - :white_check_mark: Use local storage to store persisting flow code
-    - :o: Deploy workflow to production
 - ### MLFlow
     - :white_check_mark: Track experiments local backend(sqlite)
     - :white_check_mark: Track experiments with a cloud(AWS RDS) backend
@@ -58,10 +57,6 @@ The sale department of a grocery chain wants to build a unit sales prediction en
 4. [Docker](https://www.docker.com) for deployment in a container locally
 5. [AWS ECR](https://aws.amazon.com/ecr/) to store the built docker container
 6. [AWS Lambda](https://aws.amazon.com/lambda/) to build a serverless deployment solution
-7. Coding best practices include code linting, formatting, pre-commit checking
-8. A makefile to help run multiple line command in one command
-9. Unit testing especially while deploying models
-
 ## Dataset
 
 The data comes from Kaggle competition - [Corporación Favorita Grocery Sales
@@ -133,28 +128,18 @@ Storage: minimum 10GB
 **Miniconda3**:
 
 ```bash
-cd ~
-sudo apt update && sudo apt install git wget make unzip -y
-wget -q https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh
-bash ~/Miniconda3-py39_4.12.0-Linux-x86_64.sh -b # installs python 3.9
-~/miniconda3/bin/conda init $SHELL_NAME # initialises conda to bashrc
-rm Miniconda3-py39_4.12.0-Linux-x86_64.sh # removes the download file
+
+cd ~ && git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone the repo 
+sudo apt update && sudo apt install make -y
+cd mlops-project-grocery-sales 
+make conda_install # downloads miniconda3, installs and initialises the env
 ```
 Logout of the shell and login to activate conda `base` env.
 
 ```bash
-cd ~
-git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone the repo
-cd mlops-project-grocery-sales
-make docker_install # install docker, docker-compose
+make docker_install # installs docker, docker-compose and adds docker to user gropu
 ```
 
-To avoid using `sudo` for docker:
-
-```bash
-sudo groupadd docker
-sudo usermod -aG docker $USER
-```
 Logout and log in back to the instance.
 
 2. Setup virtual environment:
@@ -336,3 +321,7 @@ Further instructions to follow. In the mean time if you know how to configure, g
 The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please follow the exact data format to avoid errors.
 
 More updates to follow.
+
+## Future developments
+- [ ] Do Time-series analysis
+- [ ] Deploy Prefect workflow to production
