@@ -1,17 +1,11 @@
 # Grocery Sales Forcasting
 
 This repository contains the final capstone project for
-[Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club).
+[Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). This is an end-to-end ML project which takes raw data as the first stage and delivers the model into production as the last stage with a lot of infrastructure interaction inbetween.
 
 ## Project Statement
 
-In Machine Learning Operations(MLOPS) expands the scope beyond just training the model using machine learning. It focuses on making sure trained models work in production. It takes elements from DevOPS and makes certain the production infrastructure is available and reliable.
-
-Ideally a MLOPS engineer takes the model, makes a production pipeline to facilitate effective functioning of the model. The pipeline approach allows to introduce/replace new/old technologies without major rework or service downtime. This approach also allows to retrain models regularly and importantly reproducibility.
-
-The usual MLOPS stages involve model tracking, workflow orchestration, model deployment, model monitoring along with best software development practices such as CI/CD.
-
-In this project, we will however go from data sourcing phase till deployment(end-to-end). At the end we will be able to easily deploy and monitor out model's performance.
+The sale department of a grocery chain wants to build a unit sales prediction engine(a web service application). The engine will use past sales data from all its stores to forecast future item unit sales. The engine will provide the sales department necessary time to stock up on exhausting items or stock less on diminishing items. The grocery chain would then be able to allocate more/less resources to certain stores.
 
 ## Plan/tasks
 - ### Data Pre-processing, Feature engineering, Model training, Validation and Prediction
@@ -36,8 +30,8 @@ In this project, we will however go from data sourcing phase till deployment(end
 - ### Deployment
     - :white_check_mark: As a Flask application with an endpoint
     - :white_check_mark: As a Lambda function with a handler
-    - :white_check_mark: As a docker container to deploy the lambda function
-    - :white_check_mark: Upload the docker container image to AWS ECR repository
+    - :white_check_mark: As a docker container to test lambda function locally
+    - :white_check_mark: Use AWS ECR repository image as Lambda function source
         - :o: Automate build and push process with docker-compose
     - :white_check_mark: Create an AWS Lambda function with ECR image source and test it manually
     - :o: Create a Streamlit UI to test the application
@@ -55,6 +49,18 @@ In this project, we will however go from data sourcing phase till deployment(end
         - :o: Initialise Terraform and prepare for CD
     - Continuous Deployment
         - :o: Automate deployment upon Git pull or push request
+
+## MLOPS pipeline
+
+1. [MLFlow](https://www.mlflow.org) for experiment tracking
+2. [Prefect 2.0](https://orion-docs.prefect.io) as workflow orchestration tool
+3. [AWS S3 bucket](https://aws.amazon.com/s3/) to store workflow artifacts
+4. [Docker](https://www.docker.com) for deployment in a container locally
+5. [AWS ECR](https://aws.amazon.com/ecr/) to store the built docker container
+6. [AWS Lambda](https://aws.amazon.com/lambda/) to build a serverless deployment solution
+7. Coding best practices include code linting, formatting, pre-commit checking
+8. A makefile to help run multiple line command in one command
+9. Unit testing especially while deploying models
 
 ## Dataset
 
@@ -110,18 +116,6 @@ The feature engineering ideas are heavily borrowed from the [1st place solution]
 ### Prediction
 Since it is a regression problem, independent variables serve as input and the target variable is unit sales. As input we can supply the store number, a date between '2017-08-16' and '2017-08-31'. An item number is randomly chosen. With these three inputs, unit sales is computed.
 
-## MLOPS pipeline
-
-1. [MLFlow](https://www.mlflow.org) for experiment tracking
-2. [Prefect 2.0](https://orion-docs.prefect.io) as workflow orchestration tool
-3. [AWS S3 bucket](https://aws.amazon.com/s3/) to store workflow artifacts
-4. [Docker](https://www.docker.com) for deployment in a container locally
-5. [AWS ECR](https://aws.amazon.com/ecr/) to store the built docker container
-6. [AWS Lambda](https://aws.amazon.com/lambda/) to build a serverless deployment solution
-7. Coding best practices include code linting, formatting, pre-commit checking
-8. A makefile to help run multiple line command in one command
-9. Unit testing especially while deploying models
-
 ## How to run
 ### System Requirements
 *To download raw data, preprocess, model* -
@@ -132,11 +126,12 @@ vCPU: minimum 4 cores(AWS EC2 instance `t2.xlarge` would be sufficient)
 
 RAM: minimum 16GB
 
-Storage: minimum 30GB
+Storage: minimum 10GB
 
 1. Install the pre-requisites:
 
 **Miniconda3**:
+
 ```bash
 cd ~
 sudo apt update && sudo apt install git wget make unzip -y
@@ -153,6 +148,7 @@ git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone th
 cd mlops-project-grocery-sales
 make docker_install # install docker, docker-compose
 ```
+
 To avoid using `sudo` for docker:
 
 ```bash
@@ -176,6 +172,7 @@ cd ~ && mkdir ~/.kaggle
 cd ~/.kaggle
 chmod 400 kaggle.json
 ```
+
 Or export Kaggle secrets as env variable like so
 ```
 export KAGGLE_USERNAME=datadinosaur
@@ -190,8 +187,9 @@ pipenv shell
 cd input/
 kaggle datasets download littlesaplings/grocery-sales-forecasting-parquet
 unzip grocery-sales-forecasting-parquet.zip
-(optional) rm -f grocery-sales-forecasting-parquet.zip
+(optional) rm grocery-sales-forecasting-parquet.zip
 ```
+
 5. Follow aws-rds [guide](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/02-experiment-tracking/mlflow_on_aws.md) to setup AWS EC2 instance, S3 bucket and AWS RDS for Mlflow tracking server.
 
 **Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database. Port `4200` is for Prefect, `5000` Mlflow, `5432` PostgresDB.
@@ -201,6 +199,7 @@ unzip grocery-sales-forecasting-parquet.zip
 6. Run Prefect orion server:
 
 **In terminal 1**
+
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
@@ -210,6 +209,7 @@ prefect orion start --host 0.0.0.0
 ```
 
 MLFlow dashboard can be found here:
+
 ```bash
 # In a browser open this link
 http://<EC2_PUBLIC_IP_DNS>:5000 # EC2_PUBLIC_IP_DNS is from AWS EC2
@@ -218,6 +218,7 @@ http://<EC2_PUBLIC_IP_DNS>:5000 # EC2_PUBLIC_IP_DNS is from AWS EC2
 7. Run data_processing:
 
 **In terminal 2**
+
 ```bash
 cd ~/mlops-project-grocery-sales
 # if not inside Pipenv shell, use `pipenv shell`
@@ -228,12 +229,14 @@ python data_preprocess.py
 8. Run MLflow with remote tracking and S3 as artifact store:
 
 **In terminal 3**
+
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
 ```
 
 Export DB secrets as environment variables.
+
 ```bash
 export DB_USER=""
 export DB_PASSWORD=""
@@ -243,6 +246,7 @@ export S3_BUCKET_NAME=""
 ```
 
 Run MLFlow
+
 ```bash
 mlflow server -h 0.0.0.0 -p 5000 \
     --backend-store-uri=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_ENDPOINT}:5432/${DB_NAME} \
@@ -255,6 +259,7 @@ mlflow server -h 0.0.0.0 -p 5000 \
 9. Run model training:
 
 **In terminal 2**
+
 ```bash
 cd ~/mlops-project-grocery-sales/
 # if not inside Pipenv shell, use `pipenv shell`
@@ -269,38 +274,55 @@ download it, copy it to both `deployment/deploy-flask` and `deployment/deploy-la
 As we move to deployment and it takes a separe `Pipfile`, it would be best all the opened terminal windows be closed and new ones opened for this section.
 
 ## Flask:
+
 Basic setup
+
 ```bash
 cd ~/mlops-project-grocery-sales/deployment/deploy-flask
 pipenv install --dev # since this directory has a separate Pipfile
-pipenv shell
 ```
+
 Run test_predict.py and test_requests.py:
+
 ```bash
-python test_predict.py # in terminal 1. To test as a normal python module
-python flask_sales_predictor.py # in terminal 1
-python test_requests.py # in terminal 2. To test with a request endpoint
+pipenv run python test_predict.py # in terminal 1. To test as a normal python module
+pipenv run python flask_sales_predictor.py # in terminal 1
+pipenv run python test_requests.py # in terminal 2. To test with a request endpoint
 ```
+
 ## Lambda
+
 Test lambda deployment:
+
 ```bash
 cd ~/mlops-project-grocery-sales/deploy-lambda
 # Exit out of flask venv and create new one for lambda testing
 pipenv install --dev
-pipenv shell
-python test_lambda.py # in terminal 1. To test with lambda handler before creating AWS Lambda resource
+pipenv run python test_lambda.py # in terminal 1. To test with lambda handler before creating AWS Lambda resource
 ```
+
 ## Docker
-To containerise:
+
+**Containerise Flask application**:
+
+```bash
+cd ~/mlops-project-grocery-sales/deploy-flask
+docker build -t flask-sales-predictor:v1 .
+docker run -it --rm -p 9696:9696 flask-sales-predictor:v1 # Terminal 1
+python test_requests.py # Terminal 2. No need for pipenv as docker is a container.
+```
+
+**Containerise Lambda function**:
+
+To run and test lambda function locally, the AWS emulator allows a proxy to convert http requests to JSON events to pass to the lambda function in the container image. We don't expose any port inside Dockerfile when we build the image. Then expose port `9000` as `8080` while running it. Inside the `test_lambda_fn.py`, we send in the event to this(`localhost:9000/2015-03-31/functions/function/invocations`). More info on this [here](https://docs.aws.amazon.com/lambda/latest/dg/images-test.html)
+
 ```bash
 cd ~/mlops-project-grocery-sales/deploy-lambda
 docker build -t lambda-sales-predictor:v1 .
+docker run -it --rm -p 9000:8080 lambda-sales-predictor:v1 # in terminal 1
+python test_lambda_fn_docker.py # in terminal 2. No need for pipenv as docker is a container.
 ```
-To run it:
-```bash
-docker run -it --rm -p 9696:9696 lambda-sales-predictor:v1 # in terminal 1
-python test_lambda.py # in terminal 2
-```
+
 ## Docker, ECR and Lambda
 We can upload the created, built docker image into AWS ECR, use it in AWS Lambda, and link an API gateway to trigger the lambda function.
 

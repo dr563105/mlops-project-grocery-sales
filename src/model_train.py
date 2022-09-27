@@ -8,7 +8,7 @@ import lightgbm as lgb
 from prefect import flow, task
 from sklearn.metrics import mean_squared_error
 
-TRACKING_SERVER_HOST = "ec2-18-234-81-121.compute-1.amazonaws.com"
+TRACKING_SERVER_HOST = "ec2-54-234-110-225.compute-1.amazonaws.com"
 mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000")
 # mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_experiment("LGBM-Mlflow-experiment")
@@ -45,7 +45,7 @@ def load_pkl(filename):
     return df
 
 
-@flow(name="Model Training")
+@task(name="Model Training")
 def model_training(X_train, y_train, X_val, y_val, df_items, X_test, num_days):
     """
     Model parameters are set and model is trained
@@ -53,85 +53,79 @@ def model_training(X_train, y_train, X_val, y_val, df_items, X_test, num_days):
     logger = prefect.get_run_logger()
     logger.info("Setting Params")
     mlflow.lightgbm.autolog(disable=True)
-    with mlflow.start_run(nested=True):
-        param = {
-            "objective": "regression",
-            "metric": "l2",
-            "verbosity": 1,
-            "boosting_type": "gbdt",
-            "n_estimators": 100,
-            "early_stopping_round": 50,
-            "num_threads": -1,
-        }
-        param2 = {
-            "num_leaves": 10,  # 200
-            "feature_fraction": 0.7386878356648194,
-            "bagging_fraction": 0.8459744550725283,
-            "bagging_freq": 1,
-            "max_depth": 4,
-            "max_bin": 10,  # 249
-            "learning_rate": 0.02,
-            "min_data_in_leaf": 2,  # 100
-        }
-        param.update(param2)
+    param = {
+        "objective": "regression",
+        "metric": "l2",
+        "verbosity": 0,
+        "boosting_type": "gbdt",
+        "n_estimators": 300,
+        "early_stopping_round": 50,
+        "num_threads": 6,
+    }
+    param2 = {
+        "num_leaves": 100,  # 200
+        "feature_fraction": 0.7386878356648194,
+        "bagging_fraction": 0.8459744550725283,
+        "bagging_freq": 5,
+        "max_depth": 10,
+        "max_bin": 240,  # 249
+        "learning_rate": 0.02,
+        "min_data_in_leaf": 100,  # 100
+    }
+    param.update(param2)
 
-        mlflow.log_params(param)
+    mlflow.log_params(param)
 
-        MAX_ROUNDS = 1
-        val_pred = []
-        test_pred = []
-        cate_vars = []
-        for i in range(16):
-            logger.info("=" * 50)
-            logger.info("Step %d" % (i + 1))
-            logger.info("=" * 50)
-            dtrain = lgb.Dataset(
-                X_train,
-                label=y_train[:, i],
-                categorical_feature=cate_vars,
-                weight=pd.concat([df_items["perishable"]] * num_days) * 0.25
-                + 1,
-            )
-            dval = lgb.Dataset(
-                X_val,
-                label=y_val[:, i],
-                reference=dtrain,
-                weight=df_items["perishable"] * 0.25 + 1,
-                categorical_feature=cate_vars,
-            )
-            bst = lgb.train(
-                param,
-                dtrain,
-                num_boost_round=MAX_ROUNDS,
-                valid_sets=[dtrain, dval],
-            )
-            # logger.debug(
-            #     "\n".join(
-            #         ("%s: %.2f" % x)
-            #         for x in sorted(
-            #             zip(X_train.columns, bst.feature_importance("gain")),
-            #             key=lambda x: x[1],
-            #             reverse=True,
-            #         )
-            #     )
-            # )
+    MAX_ROUNDS = 5
+    val_pred = []
+    test_pred = []
+    cate_vars = []
+    for i in range(16):
+        logger.info("=" * 50)
+        logger.info("Step %d" % (i + 1))
+        logger.info("=" * 50)
+        dtrain = lgb.Dataset(
+            X_train,
+            label=y_train[:, i],
+            categorical_feature=cate_vars,
+            weight=pd.concat([df_items["perishable"]] * num_days) * 0.25 + 1,
+        )
+        dval = lgb.Dataset(
+            X_val,
+            label=y_val[:, i],
+            reference=dtrain,
+            weight=df_items["perishable"] * 0.25 + 1,
+            categorical_feature=cate_vars,
+        )
+        bst = lgb.train(
+            param,
+            dtrain,
+            num_boost_round=MAX_ROUNDS,
+            valid_sets=[dtrain, dval],
+        )
+        # logger.debug(
+        #     "\n".join(
+        #         ("%s: %.2f" % x)
+        #         for x in sorted(
+        #             zip(X_train.columns, bst.feature_importance("gain")),
+        #             key=lambda x: x[1],
+        #             reverse=True,
+        #         )
+        #     )
+        # )
 
-            val_pred.append(
-                bst.predict(
-                    X_val, num_iteration=bst.best_iteration or MAX_ROUNDS
-                )
-            )
-            test_pred.append(
-                bst.predict(
-                    X_test, num_iteration=bst.best_iteration or MAX_ROUNDS
-                )
-            )
+        val_pred.append(
+            bst.predict(X_val, num_iteration=bst.best_iteration or MAX_ROUNDS)
+        )
+        test_pred.append(
+            bst.predict(X_test, num_iteration=bst.best_iteration or MAX_ROUNDS)
+        )
 
-        # savemodel_to_pkl(input=bst, filename="model_lgbm.bin")
-        mlflow.lightgbm.log_model(bst, artifact_path="models")
-        # del X_train
-        save_to_pkl(input=val_pred, filename="val_pred.pkl")
-        save_to_pkl(input=test_pred, filename="test_pred.pkl")
+    # savemodel_to_pkl(input=bst, filename="model_lgbm.bin")
+    mlflow.lightgbm.log_model(bst, artifact_path="models")
+    # del X_train
+    save_to_pkl(input=val_pred, filename="val_pred.pkl")
+    save_to_pkl(input=test_pred, filename="test_pred.pkl")
     return val_pred, test_pred
 
 
@@ -142,8 +136,7 @@ def validation_and_prediction(val_pred, y_val, df_2017, items):
     """
     logger = prefect.get_run_logger()
     logger.info(
-        "Validation mse: ",
-        mean_squared_error(y_val, np.array(val_pred).transpose()),
+        f"Validation mse: {mean_squared_error(y_val, np.array(val_pred).transpose())}"
     )
     weight = items["perishable"] * 0.25 + 1
     err = (y_val - np.array(val_pred).transpose()) ** 2
@@ -172,9 +165,6 @@ def validation_and_prediction(val_pred, y_val, df_2017, items):
     logger.info("Saving lgb cv predictions...")
     df_val_preds.to_parquet("../output/lgb_cv.parquet", engine="pyarrow")
     logger.info("Storing cross validation results as artifact")
-    mlflow.log_artifact(
-        local_path="../output/lgb_cv.parquet", artifact_path="output"
-    )
 
 
 @task(name="Generate Future Sales")
@@ -200,9 +190,10 @@ def generate_future_sales(test_pred, df_2017, df_test):
         np.expm1(future_df["unit_sales"]), 0, 1000
     )
     logger.info("Storing the predicted set as artifact")
-    future_df.to_parquet(
-        "../predictions/lgb_preds.parquet", engine="pyarrow"
-    )  #
+    future_df.to_parquet("../predictions/lgb_preds.parquet", engine="pyarrow")
+    mlflow.log_artifact(
+        "../predictions/lgb_preds.parquet", artifact_path="predictions"
+    )
 
 
 @flow(name="Sales-Model-Training-Validation-Forecasting")
@@ -222,20 +213,23 @@ def main():
     df_test = pd.read_parquet("../input/df_test.parquet", engine="pyarrow")
     num_days = 6
 
-    val_pred, test_pred = model_training(
-        X_train=X_train,
-        y_train=y_train,
-        X_val=X_val,
-        y_val=y_val,
-        df_items=df_items,
-        X_test=X_test,
-        num_days=num_days,
-    )
+    with mlflow.start_run():
 
-    validation_and_prediction(
-        val_pred=val_pred, y_val=y_val, df_2017=df_2017, items=df_items
-    )
-    generate_future_sales(test_pred, df_2017, df_test)
+        val_pred, test_pred = model_training(
+            X_train=X_train,
+            y_train=y_train,
+            X_val=X_val,
+            y_val=y_val,
+            df_items=df_items,
+            X_test=X_test,
+            num_days=num_days,
+        )
+
+        validation_and_prediction(
+            val_pred=val_pred, y_val=y_val, df_2017=df_2017, items=df_items
+        )
+        generate_future_sales(test_pred, df_2017, df_test)
+
     logger.info("All done")
 
 
