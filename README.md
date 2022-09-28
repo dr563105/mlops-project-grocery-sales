@@ -197,6 +197,9 @@ export DB_PASSWORD=""
 export DB_ENDPOINT=""
 export DB_NAME=""
 export S3_BUCKET_NAME=""
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+export AWS_DEFAULT_REGION=us-east-1
 ```
 
 Run MLFlow
@@ -215,6 +218,9 @@ MLFlow dashboard can be seen at `http://<EC2_PUBLIC_IP_DNS>:5000`
 
 ```bash
 export EC2_IP="" # replace double quotes with the EC2 IP address
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+export AWS_DEFAULT_REGION=us-east-1
 make run_model_training
 ```
 
