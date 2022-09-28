@@ -3,6 +3,8 @@
 This repository contains the final capstone project for
 [Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). This is an end-to-end ML project which takes raw data as the first stage and delivers the model into production as the last stage with a lot of infrastructure interactions in-between.
 
+For a quick demo checkout the deployed [app](https://dr563105-streamlit-predict-sales-predictor-0bd7p9.streamlitapp.com).
+
 ## Project Statement
 
 The sales department of a grocery chain wants to build a unit sales prediction engine(a web service application). The engine will use past sales data from all its stores to forecast future item unit sales. The engine will provide the sales department necessary time to stock up on exhausting items or stock less on diminishing items. The grocery chain would then be able to allocate more/less resources to certain stores.
@@ -33,7 +35,7 @@ The sales department of a grocery chain wants to build a unit sales prediction e
     - :white_check_mark: Use AWS ECR repository image as Lambda function source
         - :o: Automate build and push process with docker-compose
     - :white_check_mark: Create an AWS Lambda function with ECR image source and test it manually
-    - :o: Create a Streamlit UI to test the application
+    - :white_check_mark: Deploy model as Streamlit app
 - ### Model Monitoring with Evidently
     - :o: Use Prometheus and Grafana
     - :o: Use MongoDB to store monitoring logs, reports
@@ -128,16 +130,16 @@ Storage: minimum 10GB
 **Miniconda3**:
 
 ```bash
-cd ~ && git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone the repo 
+cd ~ && git clone https://github.com/dr563105/mlops-project-grocery-sales.git # clone the repo
 sudo apt update && sudo apt install make -y
-cd mlops-project-grocery-sales 
+cd mlops-project-grocery-sales
 make conda_docker_install # downloads and installs miniconda3, docker, docker-compose
 ```
-Logout and log in back to the instance. Now the `base` conda env would've been activated. 
+Logout and log in back to the instance. Now the `base` conda env would've been activated.
 (Optional) Test if docker is working:
 ```
 docker run hello-world # show return hello world without errors
-``` 
+```
 
 2. Setup virtual environment:
 
@@ -156,7 +158,7 @@ export KAGGLE_KEY=xxxxxxxxxxxxxx
 4. Create input directory and download Kaggle dataset into it:
 
 ```bash
-cd ~/mlops-project-grocery-sales 
+cd ~/mlops-project-grocery-sales
 make kaggle_dataset_download
 ```
 
@@ -216,13 +218,13 @@ export EC2_IP="" # replace double quotes with the EC2 IP address
 make run_model_training
 ```
 
-Copy predictions to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories. 
+Copy predictions to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories.
 ```
 make copy_preds
 ```
 
 # Deployment
-As we move to deployment and it takes a separe `Pipfile`, it would be best all the opened terminal windows be closed and new ones opened for this section.
+As we move to deployment and it takes a separe `Pipfile`, it would be best all the opened terminal windows be closed and new ones opened for this section. If you want just test out deployment, run the above copy command. For [flask-mlflow app](/deployment/webservice-flask-mlflow/), the script automatically handles it.
 
 ## Flask:
 

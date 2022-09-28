@@ -1,5 +1,6 @@
-import pickle
 import os
+import pickle
+
 import numpy as np
 import mlflow
 import pandas as pd
@@ -8,7 +9,9 @@ import lightgbm as lgb
 from prefect import flow, task
 from sklearn.metrics import mean_squared_error
 
-tracking_server = os.getenv("EC2_IP") #"ec2-54-234-110-225.compute-1.amazonaws.com"
+tracking_server = os.getenv(
+    "EC2_IP"
+)  # "ec2-54-234-110-225.compute-1.amazonaws.com"
 mlflow.set_tracking_uri(f"http://{tracking_server}:5000")
 # mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_experiment("LGBM-Mlflow-experiment")
@@ -58,25 +61,25 @@ def model_training(X_train, y_train, X_val, y_val, df_items, X_test, num_days):
         "metric": "l2",
         "verbosity": 0,
         "boosting_type": "gbdt",
-        "n_estimators": 300,
-        "early_stopping_round": 50,
+        "n_estimators": 130,
+        "early_stopping_round": 10,
         "num_threads": 6,
     }
     param2 = {
-        "num_leaves": 100,  # 200
+        "num_leaves": 50,  # 200
         "feature_fraction": 0.7386878356648194,
         "bagging_fraction": 0.8459744550725283,
         "bagging_freq": 5,
         "max_depth": 10,
-        "max_bin": 240,  # 249
+        "max_bin": 50,  # 249
         "learning_rate": 0.02,
-        "min_data_in_leaf": 100,  # 100
+        "min_data_in_leaf": 10,  # 100
     }
     param.update(param2)
 
     mlflow.log_params(param)
 
-    MAX_ROUNDS = 5
+    MAX_ROUNDS = 2
     val_pred = []
     test_pred = []
     cate_vars = []
