@@ -9,5 +9,6 @@ result = flask_sales_predictor.predict(find, item_idx)
 # if result == 0.0:
 #     print("Unit_sales couldn't be predicted for the date")
 print(
-    f"Predicted Unit sales for the item in {item_family} on {find['date1']} is {result}"
+    f"Predicted Unit sales for the item in {item_family} \
+        on {find['date1']} is {result}"
 )

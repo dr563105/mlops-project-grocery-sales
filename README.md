@@ -218,7 +218,7 @@ export EC2_IP="" # replace double quotes with the EC2 IP address
 make run_model_training
 ```
 
-Copy predictions to both `deployment/deploy-flask` and `deployment/deploy-lambda` directories.
+Copy predictions to both `deployment/webservice-flask` and `deployment/webservice-lambda` directories.
 ```
 make copy_preds
 ```
@@ -231,7 +231,7 @@ As we move to deployment and it takes a separe `Pipfile`, it would be best all t
 Basic setup
 
 ```bash
-cd ~/mlops-project-grocery-sales/deployment/deploy-flask
+cd ~/mlops-project-grocery-sales/deployment/webservice-flask
 pipenv install --dev # since this directory has a separate Pipfile
 ```
 
@@ -248,7 +248,7 @@ pipenv run python test_requests.py # in terminal 2. To test with a request endpo
 Test lambda deployment:
 
 ```bash
-cd ~/mlops-project-grocery-sales/deploy-lambda
+cd ~/mlops-project-grocery-sales/webservice-lambda
 # Exit out of flask venv and create new one for lambda testing
 pipenv install --dev
 pipenv run python test_lambda.py # in terminal 1. To test with lambda handler before creating AWS Lambda resource
@@ -259,7 +259,7 @@ pipenv run python test_lambda.py # in terminal 1. To test with lambda handler be
 **Containerise Flask application**:
 
 ```bash
-cd ~/mlops-project-grocery-sales/deploy-flask
+cd ~/mlops-project-grocery-sales/webservice-flask
 docker build -t flask-sales-predictor:v1 .
 docker run -it --rm -p 9696:9696 flask-sales-predictor:v1 # Terminal 1
 python test_requests.py # Terminal 2. No need for pipenv as docker is a container.
@@ -270,7 +270,7 @@ python test_requests.py # Terminal 2. No need for pipenv as docker is a containe
 To run and test lambda function locally, the AWS emulator allows a proxy to convert http requests to JSON events to pass to the lambda function in the container image. We don't expose any port inside Dockerfile when we build the image. Then expose port `9000` as `8080` while running it. Inside the `test_lambda_fn.py`, we send in the event to this(`localhost:9000/2015-03-31/functions/function/invocations`). More info on this [here](https://docs.aws.amazon.com/lambda/latest/dg/images-test.html)
 
 ```bash
-cd ~/mlops-project-grocery-sales/deploy-lambda
+cd ~/mlops-project-grocery-sales/webservice-lambda
 docker build -t lambda-sales-predictor:v1 .
 docker run -it --rm -p 9000:8080 lambda-sales-predictor:v1 # in terminal 1
 python test_lambda_fn_docker.py # in terminal 2. No need for pipenv as docker is a container.

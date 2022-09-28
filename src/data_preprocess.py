@@ -1,4 +1,3 @@
-import pickle
 from datetime import date, datetime, timedelta
 
 import numpy as np
@@ -6,6 +5,8 @@ import pandas as pd
 import prefect
 from prefect import flow, task
 from sklearn.preprocessing import LabelEncoder
+
+from src.utils import save_to_pkl, read_parquet_files
 
 # log_format = "%(asctime)s %(levelname)-8s %(message)s"
 # logging.basicConfig(
@@ -16,28 +17,10 @@ from sklearn.preprocessing import LabelEncoder
 # logging.getLogger()
 
 
-def read_parquet_files(filename):
-    """
-    Read parquet file format for given filename and returns the contents
-    """
-    # logger = prefect.get_run_logger()
-    # logger.info(f"Reading {filename}")
-    df = pd.read_parquet(filename, engine="pyarrow")
-    return df
-
-
-def save_to_pkl(df, filename):
-    """
-    Pickles/Saves content into a file
-    """
-    logger = prefect.get_run_logger()
-    logger.info(f"Saving {filename}")
-    with open(f"../output/{filename}", "wb") as f_in:
-        pickle.dump(df, f_in)
-
-
 @task(name="preprocessing datasets")
-def preprocess(df2016_train, df_test, df_items):
+def preprocess(
+    df2016_train: pd.DataFrame, df_test: pd.DataFrame, df_items: pd.DataFrame
+) -> pd.DataFrame:
     """
     Takes pandas dataframes as inputs and add new features
     """
@@ -76,12 +59,14 @@ def preprocess(df2016_train, df_test, df_items):
     promo_2017_item = promo_2017.groupby("item_nbr")[promo_2017.columns].sum()
 
     df_items = df_items.reindex(df_2017.index.get_level_values(1))
-    save_to_pkl(df=df_2017, filename="df_2017.pkl")
-    save_to_pkl(df=df_items, filename="df_items.pkl")
+    save_to_pkl(input=df_2017, filename="df_2017.pkl")
+    save_to_pkl(input=df_items, filename="df_items.pkl")
     return df_2017, promo_2017, df_2017_item, promo_2017_item
 
 
-def get_timespan(df, dt, minus, periods, freq="D"):
+def get_timespan(
+    df: pd.DataFrame, dt: date, minus: int, periods: int, freq: str = "D"
+):
     """
     Taking start date, period and freq as input, returns datetimeindex based on their combination
     """
@@ -90,7 +75,13 @@ def get_timespan(df, dt, minus, periods, freq="D"):
     ]
 
 
-def feature_engg(df, promo_df, t2017, is_train=True, name_prefix=None):
+def feature_engg(
+    df: pd.DataFrame,
+    promo_df: pd.DataFrame,
+    t2017: date,
+    is_train: bool = True,
+    name_prefix: str = None,
+) -> pd.DataFrame:
     """
     Takes pandas dataframes as inputs and add new features
     """
@@ -190,15 +181,20 @@ def feature_engg(df, promo_df, t2017, is_train=True, name_prefix=None):
 
 @task(name="prepare train and validation datasets")
 def prepare_dataset(
-    df_2017, promo_2017, df_2017_item, promo_2017_item, df_items
-):
+    df_2017: pd.DataFrame,
+    promo_2017: pd.DataFrame,
+    df_2017_item: pd.DataFrame,
+    promo_2017_item: pd.DataFrame,
+    df_items: pd.DataFrame,
+    num_days: int = 6,
+) -> pd.DataFrame:
     """
     Takes pandas dataframes as inputs and add new features.
     Finally collates all the dataframes into X_train, y_train, X_val, y_val and X_test
     """
     logger = prefect.get_run_logger()
     t2017 = date(2017, 6, 14)
-    num_days = 6
+    # num_days = 6
     X_l, y_l = [], []
     for i in range(num_days):
         delta = timedelta(days=7 * i)
@@ -227,9 +223,9 @@ def prepare_dataset(
     y_train = np.concatenate(y_l, axis=0)
     del X_l, y_l
 
-    save_to_pkl(df=X_train, filename="X_train.pkl")
+    save_to_pkl(input=X_train, filename="X_train.pkl")
     del X_train
-    save_to_pkl(df=y_train, filename="y_train.pkl")
+    save_to_pkl(input=y_train, filename="y_train.pkl")
     del y_train
 
     logger.info("Creating X_val, y_val...")
@@ -248,9 +244,9 @@ def prepare_dataset(
 
     X_val = pd.concat([X_val, X_val2, df_items.reset_index()], axis=1)
     del X_val2
-    save_to_pkl(df=X_val, filename="X_val.pkl")
+    save_to_pkl(input=X_val, filename="X_val.pkl")
     del X_val
-    save_to_pkl(df=y_val, filename="y_val.pkl")
+    save_to_pkl(input=y_val, filename="y_val.pkl")
     del y_val
 
     logger.info("Creating X_test...")
@@ -272,7 +268,7 @@ def prepare_dataset(
     X_test = pd.concat([X_test, X_test2, df_items.reset_index()], axis=1)
 
     del X_test2, df_2017_item, promo_2017_item
-    save_to_pkl(df=X_test, filename="X_test.pkl")
+    save_to_pkl(input=X_test, filename="X_test.pkl")
     del X_test
 
 
@@ -286,10 +282,14 @@ def main():
     df_test = read_parquet_files(filename="../input/df_test.parquet")
     df_items = read_parquet_files(filename="../input/items.parquet")
     df_2017, promo_2017, df_2017_item, promo_2017_item = preprocess(
-        df2016_train, df_test, df_items
+        df2016_train=df2016_train, df_test=df_test, df_items=df_items
     )
     prepare_dataset(
-        df_2017, promo_2017, df_2017_item, promo_2017_item, df_items
+        df_2017=df_2017,
+        promo_2017=promo_2017,
+        df_2017_item=df_2017_item,
+        promo_2017_item=promo_2017_item,
+        df_items=df_items,
     )
     logger.info("All done...")
 

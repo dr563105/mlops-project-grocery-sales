@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def read_parquet_files(filename):
+def read_parquet_files(filename: str):
     """
     Read parquet file format for given filename and returns the contents
     """
@@ -14,7 +14,7 @@ df_test_preds = read_parquet_files("lgb_preds.parquet")
 df_items = read_parquet_files("items.parquet")
 
 
-def predict(find, item_idx):
+def predict(find, item_idx: int):
     """
     Takes the json inputs, processes it and outputs the unit sales
     """
@@ -31,7 +31,7 @@ def predict(find, item_idx):
         return float(round(x, 2))
 
 
-def lambda_handler(event, context=None):
+def lambda_handler(event, context=None) -> dict:
     """
     lambda handler for predict method
     """

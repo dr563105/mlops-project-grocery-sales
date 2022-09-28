@@ -3,12 +3,7 @@ import gc
 import numpy as np
 import pandas as pd
 
-
-def save_as_parquet(df, filename):
-    """
-    Saves contents in parquet file format using Apache pyarrow engine
-    """
-    df.to_parquet(path=f"../{filename}", engine="pyarrow")
+from src.utils import save_as_parquet
 
 
 def convert_to_parquet():

@@ -1,5 +1,4 @@
 import os
-import pickle
 
 import numpy as np
 import mlflow
@@ -9,47 +8,24 @@ import lightgbm as lgb
 from prefect import flow, task
 from sklearn.metrics import mean_squared_error
 
-tracking_server = os.getenv(
-    "EC2_IP"
-)  # "ec2-54-234-110-225.compute-1.amazonaws.com"
+from src.utils import load_pkl, save_to_pkl, savemodel_to_pkl
+
+tracking_server = os.getenv("EC2_IP")
 mlflow.set_tracking_uri(f"http://{tracking_server}:5000")
 # mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_experiment("LGBM-Mlflow-experiment")
 
 
-def save_to_pkl(input, filename):
-    """
-    Pickles/Saves content into a file
-    """
-    logger = prefect.get_run_logger()
-    logger.info(f"Saving {filename}")
-    with open(f"../output/{filename}", "wb") as f_in:
-        pickle.dump(input, f_in)
-
-
-def savemodel_to_pkl(input, filename):
-    """
-    Pickles/Saves model into models directory
-    """
-    logger = prefect.get_run_logger()
-    logger.info(f"Saving {filename}")
-    with open(f"../models/{filename}", "wb") as f_in:
-        pickle.dump(input, f_in)
-
-
-def load_pkl(filename):
-    """
-    Unpickles/loads file and returns the contents
-    """
-    logger = prefect.get_run_logger()
-    logger.info(f"Reading {filename}...")
-    with open(f"../output/{filename}", "rb") as f_out:
-        df = pickle.load(f_out)
-    return df
-
-
 @task(name="Model Training")
-def model_training(X_train, y_train, X_val, y_val, df_items, X_test, num_days):
+def model_training(
+    X_train: pd.DataFrame,
+    y_train: pd.DataFrame,
+    X_val: pd.DataFrame,
+    y_val: pd.DataFrame,
+    df_items: pd.DataFrame,
+    X_test: pd.DataFrame,
+    num_days: int = 6,
+) -> pd.DataFrame:
     """
     Model parameters are set and model is trained
     """
@@ -61,25 +37,25 @@ def model_training(X_train, y_train, X_val, y_val, df_items, X_test, num_days):
         "metric": "l2",
         "verbosity": 0,
         "boosting_type": "gbdt",
-        "n_estimators": 130,
+        "n_estimators": 100,  # 130
         "early_stopping_round": 10,
         "num_threads": 6,
     }
     param2 = {
-        "num_leaves": 50,  # 200
+        "num_leaves": 4,  # 50
         "feature_fraction": 0.7386878356648194,
         "bagging_fraction": 0.8459744550725283,
         "bagging_freq": 5,
-        "max_depth": 10,
-        "max_bin": 50,  # 249
+        "max_depth": 2,  # 10
+        "max_bin": 3,  # 50
         "learning_rate": 0.02,
-        "min_data_in_leaf": 10,  # 100
+        "min_data_in_leaf": 2,  # 10
     }
     param.update(param2)
 
     mlflow.log_params(param)
 
-    MAX_ROUNDS = 2
+    MAX_ROUNDS = 0.5
     val_pred = []
     test_pred = []
     cate_vars = []
@@ -124,22 +100,27 @@ def model_training(X_train, y_train, X_val, y_val, df_items, X_test, num_days):
             bst.predict(X_test, num_iteration=bst.best_iteration or MAX_ROUNDS)
         )
 
-    # savemodel_to_pkl(input=bst, filename="model_lgbm.bin")
+    savemodel_to_pkl(input=bst, filename="model_lgbm.bin")
     mlflow.lightgbm.log_model(bst, artifact_path="models")
-    # del X_train
     save_to_pkl(input=val_pred, filename="val_pred.pkl")
     save_to_pkl(input=test_pred, filename="test_pred.pkl")
     return val_pred, test_pred
 
 
 @task(name="validation and prediction module")
-def validation_and_prediction(val_pred, y_val, df_2017, items):
+def validation_and_prediction(
+    val_pred: pd.DataFrame,
+    y_val: pd.DataFrame,
+    df_2017: pd.DataFrame,
+    items: pd.DataFrame,
+):
     """
     Calculates error for the validation set and stores valadation predictions in a file
     """
     logger = prefect.get_run_logger()
     logger.info(
-        f"Validation mse: {mean_squared_error(y_val, np.array(val_pred).transpose())}"
+        f"Validation mse: \
+                {mean_squared_error(y_val, np.array(val_pred).transpose())}"
     )
     weight = items["perishable"] * 0.25 + 1
     err = (y_val - np.array(val_pred).transpose()) ** 2
@@ -171,7 +152,9 @@ def validation_and_prediction(val_pred, y_val, df_2017, items):
 
 
 @task(name="Generate Future Sales")
-def generate_future_sales(test_pred, df_2017, df_test):
+def generate_future_sales(
+    test_pred: pd.DataFrame, df_2017: pd.DataFrame, df_test: pd.DataFrame
+):
     """
     A function to generate future sales
     """
@@ -214,7 +197,6 @@ def main():
     df_2017 = load_pkl("df_2017.pkl")
     X_test = load_pkl("X_test.pkl")
     df_test = pd.read_parquet("../input/df_test.parquet", engine="pyarrow")
-    num_days = 6
 
     with mlflow.start_run():
 
@@ -225,7 +207,6 @@ def main():
             y_val=y_val,
             df_items=df_items,
             X_test=X_test,
-            num_days=num_days,
         )
 
         validation_and_prediction(

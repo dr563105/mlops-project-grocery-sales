@@ -15,7 +15,8 @@ disable = [
     "redefined-builtin",
     "too-many-arguments",
     "logging-not-lazy",
-    "unused-argument"
+    "unused-argument",
+    "duplicate-code"
     ]
 
 [tool.black]
@@ -23,5 +24,5 @@ line-length = 80
 target-version = ['py39']
 
 [tool.isort]
-multi_line_output = 3
+multi_line_output = 4
 length_sort = true

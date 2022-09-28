@@ -2,7 +2,7 @@ import pandas as pd
 from flask import Flask, jsonify, request
 
 
-def read_parquet_files(filename):
+def read_parquet_files(filename: str) -> pd.DataFrame:
     """
     Read parquet file format for given filename and returns the contents
     """
@@ -18,7 +18,7 @@ df_items = read_parquet_files("items.parquet")
 app = Flask("flask-unit-sales-prediction")
 
 
-def predict(find, item_idx):
+def predict(find: request, item_idx: int) -> float:
     """
     Takes the json inputs, processes it and outputs the unit sales
     """
