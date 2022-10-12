@@ -12,7 +12,7 @@ artifacts/
 *.db
 
 #terraform
-**/.terraform/*
+*.terraform*
 *.tfstate
 *.tfstate.*
 
@@ -26,7 +26,7 @@ logs/
 .env
 secrets/
 *.parquet
-!lgb_preds.parquet
+!predictions/lgb_preds.parquet
 !items.parquet
 
 #vscode
