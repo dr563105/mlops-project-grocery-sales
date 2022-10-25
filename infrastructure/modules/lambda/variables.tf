@@ -1,9 +1,7 @@
-variable "aws_region" {
-  description = "AWS region to create resources"
-  default     = "us-east-1"
+variable "lambda_function_name" {
+  description = "Name of the lambda function"
 }
 
-variable "project_id" {
-  description = "project_id"
-  default = "mlops-grocery-sales"
+variable "image_uri" {
+  description = "ECR image uri"
 }

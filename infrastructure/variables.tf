@@ -12,12 +12,19 @@ variable "model_bucket" {
   description = "Name of the s3 bucket"
 }
 
-# variable "lambda_function_local_path" {
-#   description = ""
-# }
+variable "lambda_function_local_path" {
+  description = "location of local lambda function"
+}
 
-# variable "docker_image_local_path" {
-#   description = ""
-# }
+variable "docker_image_local_path" {
+  description = "location of local dockerfile"
+}
 
+variable "ecr_repo_name" {
+  description = "ECR repo name"
+}
+
+variable "lambda_function_name" {
+  description = "lambda function name"
+}
 

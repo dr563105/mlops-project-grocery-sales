@@ -27,7 +27,6 @@ The sales department of a grocery chain wants to build a unit sales prediction e
     - :white_check_mark: Track experiments local backend(sqlite)
     - :white_check_mark: Track experiments with a cloud(AWS RDS) backend
     - :white_check_mark: Store model artifacts in a cloud storage(S3)
-    - :o: Register best model to production stage
 - ### Deployment
     - :white_check_mark: As a Flask application with an endpoint
     - :white_check_mark: As a Lambda function with a handler
@@ -36,11 +35,6 @@ The sales department of a grocery chain wants to build a unit sales prediction e
         - :o: Automate build and push process with docker-compose
     - :white_check_mark: Create an AWS Lambda function with ECR image source and test it manually
     - :white_check_mark: Deploy model as Streamlit app
-- ### Model Monitoring with Evidently
-    - :o: Use Prometheus and Grafana
-    - :o: Use MongoDB to store monitoring logs, reports
-    - :o: Implement a prediction service
-    - :o: Check for model or data drift
 - ### Infrastructure as Code(IaC) with Terraform
     - :o: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway
 - ### CI/CD with Github actions
@@ -299,3 +293,9 @@ More updates to follow.
 ## Future developments
 - [ ] Do Time-series analysis
 - [ ] Deploy Prefect workflow to production
+- [ ] Implement model monitoring
+<!-- - ### Model Monitoring with Evidently
+    - :o: Use Prometheus and Grafana
+    - :o: Use MongoDB to store monitoring logs, reports
+    - :o: Implement a prediction service
+    - :o: Check for model or data drift -->
