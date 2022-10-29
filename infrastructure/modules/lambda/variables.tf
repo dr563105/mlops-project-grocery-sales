@@ -1,7 +1,13 @@
 variable "lambda_function_name" {
-  description = "Name of the lambda function"
+  type = string
+  description = "The lambda function name"
 }
 
 variable "image_uri" {
-  description = "ECR image uri"
+  description = "ecr image uri"
+}
+
+variable "bucket_name" {
+  type = string
+  description = "The s3 bucket name"
 }

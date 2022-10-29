@@ -1,7 +1,6 @@
 variable "ecr_repo_name" {
-  type = string
-  description = "ECR repo name"
-#   default = "value"
+    type        = string
+    description = "ECR repo name"
 }
 
 variable "ecr_image_tag" {
@@ -23,7 +22,7 @@ variable "docker_image_local_path" {
 variable "region" {
     type        = string
     description = "region"
-    default = "eu-west-1"
+    default = "us-east-1"
 }
 
 variable "account_id" {
