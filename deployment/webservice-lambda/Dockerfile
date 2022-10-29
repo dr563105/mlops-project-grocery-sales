@@ -8,6 +8,6 @@ COPY [ "Pipfile", "Pipfile.lock", "./" ]
 RUN pipenv install --system --deploy
 
 # COPY [ "lgb_preds.parquet" , "lgb_preds.parquet" ]
-COPY [ "prep.py", "items.parquet" , "lambda_function.py", "./" ]
+COPY [ "items.parquet" , "lambda_function.py", "./" ]
 
 CMD [ "lambda_function.lambda_handler" ]
