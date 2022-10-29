@@ -6,11 +6,11 @@ name = "pypi"
 [packages]
 pandas = "*"
 pyarrow = "*"
+mlflow = "*"
+boto3 = "*"
 
 [dev-packages]
 requests = "*"
-mlflow = "*"
-boto3 = "*"
 
 [requires]
 python_version = "3.9"

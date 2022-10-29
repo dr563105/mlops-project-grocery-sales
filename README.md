@@ -3,47 +3,11 @@
 This repository contains the final capstone project for
 [Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). This is an end-to-end ML project which takes raw data as the first stage and delivers the model into production as the last stage with a lot of infrastructure interactions in-between.
 
-For a quick demo checkout the deployed [app](https://dr563105-streamlit-predict-sales-predictor-0bd7p9.streamlitapp.com).
+For a quick demo checkout the deployed Streamlit [app](https://dr563105-streamlit-predict-sales-predictor-0bd7p9.streamlitapp.com).
 
 ## Project Statement
 
 The sales department of a grocery chain wants to build a unit sales prediction engine(a web service application). The engine will use past sales data from all its stores to forecast future item unit sales. The engine will provide the sales department necessary time to stock up on exhausting items or stock less on diminishing items. The grocery chain would then be able to allocate more/less resources to certain stores.
-
-## Plan/tasks
-- ### Data Pre-processing, Feature engineering, Model training, Validation and Prediction
-    - :white_check_mark: Choose/collect dataset
-    - :white_check_mark: Convert huge raw CSV to parquet file formats
-    - :white_check_mark: Use Kaggle to store preprocessed datasets
-    - :white_check_mark: Preprocess and feature engineer
-        - :white_check_mark: Implement logging
-    - :white_check_mark: Prepare dataset for model training
-    - :white_check_mark: Implement LGBM model
-    - :white_check_mark: Validate and forecast predictions
-- ### Prefect 2.0 Orion
-    - :white_check_mark: Do basic workflow orchestration with local API server
-    - :white_check_mark: Use a cloud(AWS) as API server
-    - :white_check_mark: Use local storage to store persisting flow code
-- ### MLFlow
-    - :white_check_mark: Track experiments local backend(sqlite)
-    - :white_check_mark: Track experiments with a cloud(AWS RDS) backend
-    - :white_check_mark: Store model artifacts in a cloud storage(S3)
-- ### Deployment
-    - :white_check_mark: As a Flask application with an endpoint
-    - :white_check_mark: As a Lambda function with a handler
-    - :white_check_mark: As a docker container to test lambda function locally
-    - :white_check_mark: Use AWS ECR repository image as Lambda function source
-        - :o: Automate build and push process with docker-compose
-    - :white_check_mark: Create an AWS Lambda function with ECR image source and test it manually
-    - :white_check_mark: Deploy model as Streamlit app
-- ### Infrastructure as Code(IaC) with Terraform
-    - :o: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway
-- ### CI/CD with Github actions
-    - Continuous Integration
-        - :white_check_mark: Unit testing
-        - :o: Integration testing with docker-compose
-        - :o: Initialise Terraform and prepare for CD
-    - Continuous Deployment
-        - :o: Automate deployment upon Git pull or push request
 
 ## MLOPS pipeline
 
@@ -267,7 +231,7 @@ python test_requests.py # Terminal 2. No need for pipenv as docker is a containe
 
 **Containerise Lambda function**:
 
-To run and test lambda function locally, the AWS emulator allows a proxy to convert http requests to JSON events to pass to the lambda function in the container image. We don't expose any port inside Dockerfile when we build the image. Then expose port `9000` as `8080` while running it. Inside the `test_lambda_fn.py`, we send in the event to this(`localhost:9000/2015-03-31/functions/function/invocations`). More info on this [here](https://docs.aws.amazon.com/lambda/latest/dg/images-test.html)
+To run and test lambda function locally, the AWS emulator allows a proxy to convert http requests to JSON events to pass to the lambda function in the container image. We don't expose any port inside Dockerfile when we build the image. Then expose port `9000` as `8080` while running it. Inside the `test_lambda_fn_docker.py`, we send in the event to this(`localhost:9000/2015-03-31/functions/function/invocations`). More info on this [here](https://docs.aws.amazon.com/lambda/latest/dg/images-test.html)
 
 ```bash
 cd ~/mlops-project-grocery-sales/deployment/webservice-lambda
@@ -283,23 +247,60 @@ docker run \
 python test_lambda_fn_docker.py # in terminal 2. No need for pipenv as docker is a container.
 ```
 
-## Docker, ECR and Lambda
+## ECR, Lambda, API Gateway
 We can upload the created, built docker image into AWS ECR, use it in AWS Lambda, and link an API gateway to trigger the lambda function.
 
-A comprehensive guide is covered [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#preparing-the-docker-image) in ML Zoomcamp.
+Step 1: Create ECR repo and upload image to ECR. See [here](deployment/webservice-lambda/README.md#instructions-for-ecr).
 
-Further instructions to follow. In the mean time if you know how to configure, go ahead test the pipeline with the following JSON dict
+Step 2: Create Lambda function from ECR repo image. See [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#creating-the-lambda-function).
+For permissions go [here](deployment/webservice-lambda/README.md#permissions-for-lambda-function).
 
+Step 3: Create API Gateway. For instructions see [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#creating-the-api-gateway).
+
+Step 4: Testing. Use the following JSON object to test the API inside your favourite REST API client(Postman, Thunder Client)
 ```json
-{"find": {"date1": "2017-08-26", "store_nbr": 19}}
+{"find": {"date1": "2017-08-26", "store_nbr": 20}}
 ```
 The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please follow the exact data format to avoid errors.
 
-More updates to follow.
+## Plan/tasks
+- ### Data Pre-processing, Feature engineering, Model training, Validation and Prediction
+    - :white_check_mark: Choose/collect dataset
+    - :white_check_mark: Convert huge raw CSV to parquet file formats
+    - :white_check_mark: Use Kaggle to store preprocessed datasets
+    - :white_check_mark: Preprocess and feature engineer
+        - :white_check_mark: Implement logging
+    - :white_check_mark: Prepare dataset for model training
+    - :white_check_mark: Implement LGBM model
+    - :white_check_mark: Validate and forecast predictions
+- ### Prefect 2.0 Orion
+    - :white_check_mark: Do basic workflow orchestration with local API server
+    - :white_check_mark: Use a cloud(AWS) as API server
+    - :white_check_mark: Use local storage to store persisting flow code
+- ### MLFlow
+    - :white_check_mark: Track experiments local backend(sqlite)
+    - :white_check_mark: Track experiments with a cloud(AWS RDS) backend
+    - :white_check_mark: Store model artifacts in a cloud storage(S3)
+- ### Deployment
+    - :white_check_mark: As a Flask application with an endpoint
+    - :white_check_mark: As a Lambda function with a handler
+    - :white_check_mark: As a docker container to test lambda function locally
+    - :white_check_mark: Use AWS ECR repository image as Lambda function source
+    - :white_check_mark: Create an AWS Lambda function with ECR image source and test it manually
+    - :white_check_mark: Connect API Gateway and lambda function using ECR image
+    - :white_check_mark: Deploy model as Streamlit app
+- ### Infrastructure as Code(IaC) with Terraform
+    - :o: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway
+- ### CI/CD with Github actions
+    - Continuous Integration
+        - :white_check_mark: Unit testing
+        - :o: Integration testing with docker-compose
+        - :o: Initialise Terraform and prepare for CD
+    - Continuous Deployment
+        - :o: Automate deployment upon Git pull or push request
 
 ## Future developments
 - [ ] Do Time-series analysis
-- [ ] Deploy Prefect workflow to production
 - [ ] Implement model monitoring
 <!-- - ### Model Monitoring with Evidently
     - :o: Use Prometheus and Grafana

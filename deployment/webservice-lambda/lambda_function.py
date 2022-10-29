@@ -1,12 +1,17 @@
-import mlflow
-import pandas as pd
 import os
 
-RUN_ID = os.getenv("RUN_ID")  # "5651db4644334361b10296c51ba3af3e"  
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME") #"mlops-project-sales-forecast-bucket"
+import mlflow
+import pandas as pd
+
+RUN_ID = os.getenv("RUN_ID")  # "5651db4644334361b10296c51ba3af3e"
+S3_BUCKET_NAME = os.getenv(
+    "S3_BUCKET_NAME"
+)  # "mlops-project-sales-forecast-bucket"
 EXPERIMENT_ID = 1
 FILE_ADDRESS = "artifacts/predictions/lgb_preds.parquet"
-pred_s3_location = f"s3://{S3_BUCKET_NAME}/{EXPERIMENT_ID}/{RUN_ID}/{FILE_ADDRESS}"
+pred_s3_location = (
+    f"s3://{S3_BUCKET_NAME}/{EXPERIMENT_ID}/{RUN_ID}/{FILE_ADDRESS}"
+)
 
 
 def read_parquet_files(filename: str):
@@ -16,12 +21,13 @@ def read_parquet_files(filename: str):
     df = pd.read_parquet(filename, engine="pyarrow")
     return df
 
+
 if os.path.exists("lgb_preds.parquet"):
     df_test_preds = read_parquet_files("lgb_preds.parquet")
 else:
     s3_file = mlflow.artifacts.download_artifacts(
-        artifact_uri=pred_s3_location, dst_path="./"
-    )
+        artifact_uri=pred_s3_location, dst_path="/tmp"
+    )  # /tmp is added as lambda gives write access only to that folder. Otherwise use "./" .
     df_test_preds = read_parquet_files(s3_file)
 
 
