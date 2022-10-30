@@ -1,4 +1,5 @@
 import os
+import json
 
 import mlflow
 import pandas as pd
@@ -71,4 +72,8 @@ def lambda_handler(event, context=None) -> dict:
         "Prediction date": find["date1"],
         "Unit_sales": pred_unit_sales,
     }
-    return result
+    return {
+        "isBase64Encoded": False,
+        "statusCode": 200,
+        "body": json.dumps(result),
+    }

@@ -96,8 +96,9 @@ make conda_docker_install # downloads and installs miniconda3, docker, docker-co
 Logout and log in back to the instance. Now the `base` conda env would've been activated.
 (Optional) Test if docker is working:
 ```
-docker run hello-world # show return hello world without errors
+docker run --rm hello-world # show return hello world without errors
 ```
+**Note** - You can skip the next steps and directly skip to [deployment](#deployment). Just make sure add in environment variables whereever necessary.
 
 2. Setup virtual environment:
 
