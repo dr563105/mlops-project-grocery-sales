@@ -48,6 +48,9 @@ module "lambda_function" {
   lambda_function_name = var.lambda_function_name
   image_uri = module.ecr_image.image_uri
   bucket_name = module.s3_bucket.s3
+  depends_on = [
+    module.ecr_image
+  ]
 }
 
 output "lambda_function" {

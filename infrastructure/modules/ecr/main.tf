@@ -5,6 +5,7 @@ resource "aws_ecr_repository" "repo" {
   image_scanning_configuration {
     scan_on_push = false
   }
+  force_delete = true
 }
 
 resource "null_resource" "ecr_image" {
@@ -33,4 +34,8 @@ data "aws_ecr_image" "lambda_image" {
 
 output "image_uri" {
     value = "${aws_ecr_repository.repo.repository_url}:${data.aws_ecr_image.lambda_image.image_tag}"
+}
+
+output "ecr_image_ref" {
+  value = "${data.aws_ecr_image.lambda_image}"
 }

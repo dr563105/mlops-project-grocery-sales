@@ -3,7 +3,16 @@
 This repository contains the final capstone project for
 [Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). This is an end-to-end ML project which takes raw data as the first stage and delivers the model into production as the last stage with a lot of infrastructure interactions in-between.
 
+# Test the workflow
+
+**Streamlit**
 For a quick demo checkout the deployed Streamlit [app](https://dr563105-streamlit-predict-sales-predictor-0bd7p9.streamlitapp.com).
+
+**AWS API Gateway triggering Lambda function**
+Use REST API client. Goto this [link](https://i3pdoqdr92.execute-api.us-east-1.amazonaws.com/stg/predict) and supply the following JSON object. You should receive JSON object output with prediction.
+```
+{"find": {"date1": "2017-08-17", "store_nbr": 20}}
+```
 
 ## Project Statement
 
@@ -17,6 +26,8 @@ The sales department of a grocery chain wants to build a unit sales prediction e
 4. [Docker](https://www.docker.com) for deployment in a container locally
 5. [AWS ECR](https://aws.amazon.com/ecr/) to store the built docker container
 6. [AWS Lambda](https://aws.amazon.com/lambda/) to build a serverless deployment solution
+7. [Terraform](https://www.terraform.io) to automate infrastructure
+
 ## Dataset
 
 The data comes from Kaggle competition - [Corporación Favorita Grocery Sales
@@ -248,20 +259,40 @@ docker run \
 python test_lambda_fn_docker.py # in terminal 2. No need for pipenv as docker is a container.
 ```
 
-## ECR, Lambda, API Gateway
-We can upload the created, built docker image into AWS ECR, use it in AWS Lambda, and link an API gateway to trigger the lambda function.
+## Terraform - ECR, Lambda, API Gateway
+Terraform keeps track of infrastructure as Github does for source code. We can version infrastructures as needed.
 
-Step 1: Create ECR repo and upload image to ECR. See [here](deployment/webservice-lambda/README.md#instructions-for-ecr).
+So, for our purpose we can use Terraform to deploy the built docker image into AWS ECR, use it in AWS Lambda, and link an API gateway to trigger the lambda function. All the setup for this is present inside [infrastructure](infrastructure/).
 
-Step 2: Create Lambda function from ECR repo image. See [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#creating-the-lambda-function).
-For permissions go [here](deployment/webservice-lambda/README.md#permissions-for-lambda-function).
+1. Install terraform(for ubuntu)
+```bash
+wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
+```
+2. Create a S3 bucket to store Terraform state files. That name must go inside [main.tf](infrastructure/main.tf) as `bucket` name and the file as `key`.
 
-Step 3: Create API Gateway. For instructions see [here](https://github.com/alexeygrigorev/aws-lambda-docker/blob/main/guide.md#creating-the-api-gateway).
+3. Initialise and apply configurations
+```
+terraform init
+terraform apply -var-file vars/stg.tfvars # Should see plan to add 20 components. Give `yes` to continue
+```
+4. Testing. Copy the `rest_api_url` displayed, use a REST API client, select `POST` as method and in the `body` supply the following JSON
+```
+{"find": {"date1": "2017-08-26", "store_nbr": 20}}
+```
+5. To destroy resource after testing
+```
+terraform apply -var-file vars/stg.tfvars # error may occur in deleting ECR repo as image is present. Manually delete the image before executing destroy command.
+```
 
-Step 4: Testing. Use the following JSON object to test the API inside your favourite REST API client(Postman, Thunder Client)
+
+
+
 ```json
 {"find": {"date1": "2017-08-26", "store_nbr": 20}}
 ```
+
 The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please follow the exact data format to avoid errors.
 
 ## Plan/tasks
@@ -291,7 +322,7 @@ The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please fol
     - :white_check_mark: Connect API Gateway and lambda function using ECR image
     - :white_check_mark: Deploy model as Streamlit app
 - ### Infrastructure as Code(IaC) with Terraform
-    - :o: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway
+    - :white_check_mark: Use Terraform to deploy the model to production using AWS ECR, Lambda, S3 and API Gateway
 - ### CI/CD with Github actions
     - Continuous Integration
         - :white_check_mark: Unit testing

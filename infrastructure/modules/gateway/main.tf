@@ -1,3 +1,4 @@
+# Create a rest api gateway
 resource "aws_api_gateway_rest_api" "rest_api" {
   name = var.rest_api_name
   description = "Terraform invoke lambda sales predictor function"
@@ -40,12 +41,12 @@ resource "aws_api_gateway_integration" "rest_api_post_method_integration" {
   timeout_milliseconds = 29000
 }
 
-# Create integration response
+# Create a integration response for the integration
 resource "aws_api_gateway_integration_response" "post_method_integration_resp" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
   resource_id = aws_api_gateway_resource.rest_api_predict_resource.id
   http_method = aws_api_gateway_method.rest_api_post_method.http_method
-  status_code = aws_api_gateway_method_response.rest_api_post_method_response_200
+  status_code = aws_api_gateway_method_response.rest_api_post_method_response_200.status_code
   depends_on = [
     aws_api_gateway_integration.rest_api_post_method_integration
   ]
@@ -68,30 +69,28 @@ resource "aws_api_gateway_deployment" "sales_pred_deployment" {
     create_before_destroy = true
   }
 }
+
+# Create a stage for the deployment
 resource "aws_api_gateway_stage" "rest_api_stage" {
   deployment_id = aws_api_gateway_deployment.sales_pred_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
   stage_name    = var.rest_api_stage_name
 }
 
+# Allow gateway to invoke lambda function
 resource "aws_lambda_permission" "api_gateway_lambda" {
   statement_id = "AllowExecutionFromAPIGateway"
   action = "lambda:InvokeFunction"
   function_name = var.lambda_function_name
   principal = "apigateway.amazonaws.com"
   source_arn = "arn:aws:execute-api:${var.api_gateway_region}:${var.api_gateway_account_id}:${aws_api_gateway_rest_api.rest_api.id}/*/${aws_api_gateway_method.rest_api_post_method.http_method}${aws_api_gateway_resource.rest_api_predict_resource.path}"
-
-  #"${aws_api_gateway_rest_api.rest_api.execution_arn}/*/*/*"
-
-  #"arn:aws:execute-api:${var.api_gateway_region}:${var.api_gateway_account_id}:${aws_api_gateway_rest_api.rest_api.id}/*/${aws_api_gateway_method.rest_api_post_method.http_method}${aws_api_gateway_resource.rest_api_resource.path}"
 }
 
 # IAM for api
 resource "aws_api_gateway_rest_api_policy" "api_allow_invoke" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-
   policy = <<EOF
-{
+  {
   "Version": "2012-10-17",
   "Statement": [
     {
