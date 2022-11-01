@@ -4,6 +4,9 @@ conda_docker_install:
 	source ./scripts/install_conda.sh
 	source ./scripts/install_docker.sh
 
+spark_install:
+	source ./scripts/install_spark.sh
+
 pipenv_setup:
 	pip install pipenv
 	pipenv install --dev
