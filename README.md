@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-The sales department of a grocery chain wants to build an unit sales prediction engine(a web service application). Their ML engineer has already a predictor ML model but they don't know how to bring that model into production. The task here is to use necessary MLOPS tools and manage the ML model in production.
+The sales department of a grocery chain wants to build an unit sales prediction engine(a web service application). Their ML engineer has already a predictor ML model but they don't know how to bring that model into production. The task here is to use necessary MLOPS tools, design and manage production workflow.
 ## MLOPS model pipeline tools
 
 1. [MLFlow](https://www.mlflow.org) for experiment tracking
