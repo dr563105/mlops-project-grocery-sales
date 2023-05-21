@@ -1,24 +1,9 @@
 # Grocery Sales Forcasting
 
-This repository contains the final capstone project for
-[Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). This is an end-to-end ML project which takes raw data as the first stage and delivers the model into production as the last stage with a lot of infrastructure interactions in-between.
+## Problem Statement
 
-# Test the workflow
-
-**Streamlit**
-For a quick demo checkout the deployed Streamlit [app](https://dr563105-streamlit-predict-sales-predictor-0bd7p9.streamlitapp.com).
-
-**AWS API Gateway triggering Lambda function**
-Use REST API client. Goto this [link](https://i3pdoqdr92.execute-api.us-east-1.amazonaws.com/stg/predict) and supply the following JSON object. You should receive JSON object output with prediction.
-```
-{"find": {"date1": "2017-08-17", "store_nbr": 20}}
-```
-
-## Project Statement
-
-The sales department of a grocery chain wants to build a unit sales prediction engine(a web service application). The engine will use past sales data from all its stores to forecast future item unit sales. The engine will provide the sales department necessary time to stock up on exhausting items or stock less on diminishing items. The grocery chain would then be able to allocate more/less resources to certain stores.
-
-## MLOPS pipeline
+The sales department of a grocery chain wants to build an unit sales prediction engine(a web service application). Their ML engineer has already a predictor ML model but they don't know how to bring that model into production. The task here is to use necessary MLOPS tools and manage the ML model in production.
+## MLOPS model pipeline tools
 
 1. [MLFlow](https://www.mlflow.org) for experiment tracking
 2. [Prefect 2.0](https://orion-docs.prefect.io) as workflow orchestration tool
@@ -28,19 +13,32 @@ The sales department of a grocery chain wants to build a unit sales prediction e
 6. [AWS Lambda](https://aws.amazon.com/lambda/) to build a serverless deployment solution
 7. [Terraform](https://www.terraform.io) to automate infrastructure
 
+# Test the workflow
+
+**Streamlit**
+
+For a quick demo checkout the deployed Streamlit [app](https://dr563105-streamlit-predict-sales-predictor-0bd7p9.streamlitapp.com).
+
+**AWS API Gateway triggering Lambda function**
+
+Use REST API client. Set method as `post`. Give this [link](https://i3pdoqdr92.execute-api.us-east-1.amazonaws.com/stg/predict) for send request. Supply the following JSON object as `body`. You should receive a JSON object back as output(respose body) with prediction.
+```
+{"find": {"date1": "2017-08-17", "store_nbr": 20}}
+```
+> If you're looking for comprehensive testing of the workflow, then jump to ["how to run" section](#how-to-run).
 ## Dataset
 
 The data comes from Kaggle competition - [Corporación Favorita Grocery Sales
 Forecasting](https://www.kaggle.com/competitions/favorita-grocery-sales-forecasting/overview).
 
-Since the compressed dataset when uncompressed becomes too slow to read, I have created
+Since the compressed dataset when uncompressed becomes too slow to read, I create
 parquet equivalent of all files in
 [Kaggle](https://www.kaggle.com/datasets/littlesaplings/grocery-sales-forecasting-parquet/settings?select=holiday_events.parquet)(660MB).
 The parquet format allows for fasting file reading time into memory. You would need a Kaggle account to download the files.
 
 To know more about parquet files [databricks has a nice summary](https://www.databricks.com/glossary/what-is-parquet).
 
-**Note**: Though the loading time is faster, the training dataset needs about 6GB RAM.
+> **Note**: Though the loading time is faster, the training dataset needs about 6GB RAM.
 
 ## Machine Learning
 
@@ -53,25 +51,17 @@ Using the preprocess data, we compute new features.
 Basic features:
 
     - Categorical features - item, family
-
     - Promotion
 
 Statistical features:
 
     - time windows
-
         - nearest days:[3, 7, 14]
-
     - key: store x item, item
-
     - target: unit_sales
-
     - method:
-
         - mean, median, max, min, std
-
         - difference of mean value between adjacent time windows(only for equal time windows)
-
 ### Model training
 Since we have a bunch of features and single target variable in `unit_sales`, we can consider this as regression problem.
 
@@ -80,7 +70,7 @@ We use LightGBM as our model algorithm. We set the hyperparameters to a default 
 The feature engineering ideas are heavily borrowed from the [1st place solution](https://www.kaggle.com/code/shixw125/1st-place-lgb-model-public-0-506-private-0-511/script) of the competition.
 
 ### Prediction
-Since it is a regression problem, independent variables serve as input and the target variable is unit sales. As input we can supply the store number, a date between '2017-08-16' and '2017-08-31'. An item number is randomly chosen. With these three inputs, unit sales is computed.
+Since it is a regression problem, independent variables serve as input and the target variable is unit sales. As input we can supply the store number, a date between `2017-08-16` and `2017-08-31`. An item number is randomly chosen. With these three inputs, unit sales is computed.
 
 ## How to run
 ### System Requirements
@@ -295,6 +285,11 @@ terraform apply -var-file vars/stg.tfvars # error may occur in deleting ECR repo
 
 The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please follow the exact data format to avoid errors.
 
+
+## Acknowledgements
+
+This final capstone project was created as a part of the [Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). I'd like to thank the staff for providing high quality learning resource. I appreciate their time, effort and assistance in helping me complete the project. I highly recommend any aspiring data scientists this course.
+
 ## Plan/tasks
 - ### Data Pre-processing, Feature engineering, Model training, Validation and Prediction
     - :white_check_mark: Choose/collect dataset
@@ -326,13 +321,9 @@ The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please fol
 - ### CI/CD with Github actions
     - Continuous Integration
         - :white_check_mark: Unit testing
-        - :o: Integration testing with docker-compose
-        - :o: Initialise Terraform and prepare for CD
-    - Continuous Deployment
-        - :o: Automate deployment upon Git pull or push request
-
+        <!-- - :o: Integration testing with docker-compose -->
+        <!-- - :o: Initialise Terraform and prepare for CD -->
 ## Future developments
-- [ ] Do Time-series analysis
 - [ ] Implement model monitoring
 <!-- - ### Model Monitoring with Evidently
     - :o: Use Prometheus and Grafana
