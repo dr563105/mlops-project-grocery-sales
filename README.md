@@ -99,7 +99,7 @@ Logout and log in back to the instance. Now the `base` conda env would've been a
 ```
 docker run --rm hello-world # show return hello world without errors
 ```
-**Note** - You can skip the next steps and directly skip to [deployment](#deployment). Just make sure add in environment variables whereever necessary.
+> **Note** - You can skip the next steps and directly skip to [deployment](#deployment). Just make sure add in environment variables whereever necessary.
 
 2. Setup virtual environment:
 
@@ -124,7 +124,7 @@ make kaggle_dataset_download
 
 5. Follow aws-rds [guide](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/02-experiment-tracking/mlflow_on_aws.md) to setup AWS EC2 instance, S3 bucket and AWS RDS for Mlflow tracking server.
 
-**Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database. Port `4200` is for Prefect, `5000` Mlflow, `5432` PostgresDB.
+> **Note:** Make sure ports 4200, 5000 and 5432 are added to the inbound rules. Security group of RDS must be linked with EC2 server instance to connect the server with the database. Port `4200` is for Prefect, `5000` Mlflow, `5432` PostgresDB.
 
 ![Inbound rules configuration!](/assets/images/inbound_rules.jpeg "EC2 instance inbound rules")
 
