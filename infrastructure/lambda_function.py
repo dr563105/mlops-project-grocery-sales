@@ -2,6 +2,8 @@ import os
 
 import mlflow
 import pandas as pd
+import boto3
+import json
 
 RUN_ID = os.getenv("RUN_ID")  # "5651db4644334361b10296c51ba3af3e"
 S3_BUCKET_NAME = os.getenv(
@@ -13,6 +15,8 @@ pred_s3_location = (
     f"s3://{S3_BUCKET_NAME}/{EXPERIMENT_ID}/{RUN_ID}/{FILE_ADDRESS}"
 )
 
+# Initialize the SNS client object outside of the handler
+dynamodb = boto3.resource('dynamodb')
 
 def read_parquet_files(filename: str):
     """
@@ -65,10 +69,19 @@ def lambda_handler(event, context=None) -> dict:
     #     print("item either not found or price couldn't be predicted")
 
     result = {
-        " Store": find["store_nbr"],
-        " item": int(item_idx),
-        "Family": item_family,
-        "Prediction date": find["date1"],
-        "Unit_sales": pred_unit_sales,
+        "store_id": find["store_nbr"],
+        "item_id": int(item_idx),
+        "family": item_family,
+        "prediction_date": find["date1"],
+        "unit_sales": str(pred_unit_sales),
     }
-    return result
+
+    table_name = os.getenv("DBTABLE_NAME")
+    table = dynamodb.Table(table_name)
+    table.put_item(
+        Item = result
+    )
+    return {
+      'statusCode': 200,
+      'body': f'{result} - successfully created item!',
+      }

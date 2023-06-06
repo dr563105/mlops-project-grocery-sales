@@ -1,4 +1,4 @@
-bucket_name = "mlops-project-sales-forecast-bucket"
+# bucket_name = "mlops-project-sales-forecast-bucket"
 lambda_function_local_path = "./lambda_function.py"
 docker_image_local_path = "./Dockerfile"
 ecr_repo_name = "prod_ecr_forecast_image"

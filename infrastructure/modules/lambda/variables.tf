@@ -7,7 +7,24 @@ variable "image_uri" {
   description = "ecr image uri"
 }
 
-variable "bucket_name" {
+# variable "bucket_name" {
+#   type = string
+#   description = "The s3 bucket name"
+# }
+
+variable "artifact_bucket" {
   type = string
-  description = "The s3 bucket name"
+}
+
+variable "mlflow_run_id" {
+  description = "Name of the run id of the artifact to download"
+}
+
+variable "dbtable_name" {
+}
+
+variable "dynamodb_accountid" {
+}
+
+variable "dynamodb_region" {
 }
