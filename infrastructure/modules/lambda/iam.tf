@@ -1,130 +1,82 @@
 
-  # Create a IAM role. Add trust policy to it.
-  resource "aws_iam_role" "lambda_exec" {
-    name = "iam_${var.lambda_function_name}"
-    assume_role_policy = <<EOF
-    {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Action": "sts:AssumeRole",
-                "Principal": {
-                    "Service": "lambda.amazonaws.com"
-                },
-                "Effect": "Allow",
-                "Sid":""
-          }
-      ]
-  } 
-  EOF
+# Create a IAM role. Add trust policy to it.
+resource "aws_iam_role" "lambda_exec" {
+  name = "iam_${var.lambda_function_name}"
+  assume_role_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Action": "sts:AssumeRole",
+        "Principal": {
+            "Service": "lambda.amazonaws.com"
+    },
+    "Effect": "Allow",
+    "Sid": ""
+    }]
+  })
 }
 
-#AWSLambdaBasicExecutionRole is a policy created by AWS. It give CloudWatch access to create log groups, streams and put events for any resource. We can streamline to be accound and resource specific.
+# IAM for Lambda to access S3 artifacts bucket
+resource "aws_iam_policy" "lambda_s3artifact_role_policy" {
+  name = "policy-s3-artifact-access-to-lambda"
+  description = "IAM Policy for s3-artifact-access-to-lambda"
+  policy = jsonencode({
+"Version": "2012-10-17",
+"Statement": [{
+    "Sid": "VisualEditor0",
+    "Effect": "Allow",
+    "Action": [
+        "s3:Get*",
+        "s3:List*"
+    ],
+    "Resource": [
+        "arn:aws:s3:::${var.artifact_bucket}",
+        "arn:aws:s3:::${var.artifact_bucket}/*"
+    ]}]
+ })
+}
 
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#             "Effect": "Allow",
-#             "Action": [
-#                 "logs:CreateLogGroup",
-#                 "logs:CreateLogStream",
-#                 "logs:PutLogEvents"
-#             ],
-#             "Resource": "*"
-#         }
-#     ]
+#Policy for lambda to dynamodb
+resource "aws_iam_policy" "lambda_dynamodb" {
+  name = "policy_lambda_access_to_dynamodb"
+  description = ""
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Action": [
+            "dynamodb:BatchGetItem",
+            "dynamodb:GetItem",
+            "dynamodb:Query",
+            "dynamodb:Scan",
+            "dynamodb:BatchWriteItem",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "logs:CreateLogGroup" 
+        ],
+        "Resource": "arn:aws:dynamodb:${var.dynamodb_region}:${var.dynamodb_accountid}:table/${var.dbtable_name}"
+    }]
+  })
+}
+
+# iam_policy_arn = [
+#    aws_iam_policy.lambda_s3artifact_role_policy.arn,
+#    aws_iam_policy.lambda_dynamodb.arn,
+#    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+# ]
+
+# ## Attaching the policy to the role
+# resource "aws_iam_role_policy_attachment" "lambda_exec_rolefromTF-policy-attachment" {
+#     role = aws_iam_role.lambda_exec.name
+#     count = "${length(iam_policy_arn)}"
+#     policy_arn = "${iam_policy_arn[count.index]}"
 # }
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#             "Effect": "Allow",
-#             "Action": "logs:CreateLogGroup",
-#             "Resource": "arn:aws:logs:us-east-1:445110408225:*"
-#         },
-#         {
-#             "Effect": "Allow",
-#             "Action": [
-#                 "logs:CreateLogStream",
-#                 "logs:PutLogEvents"
-#             ],
-#             "Resource": [
-#                 "arn:aws:logs:us-east-1:445110408225:log-group:/aws/lambda/lambda-sales-app:*"
-#             ]
-#         }
-#     ]
-# }
+
 resource "aws_iam_role_policy_attachment" "lambda_policy" {
   role = aws_iam_role.lambda_exec.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
-
-# IAM for Lambda to access S3 artifacts bucket
-
-resource "aws_iam_policy" "lambda_s3artifact_role_policy" {
-  name = "policy-s3-artifact-access-to-lambda"
-  description = "IAM Policy for s3-artifact-access-to-lambda"
-policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "s3:Get*",
-                "s3:List*"
-            ],
-            "Resource": [
-                "arn:aws:s3:::${var.artifact_bucket}",
-                "arn:aws:s3:::${var.artifact_bucket}/*"
-            ]
-        }
-    ]
-}
-EOF
-}
-
-resource "aws_iam_policy" "lambda_dynamodb" {
-  name = "policy_lambda_access_to_dynamodb"
-  description = ""
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetItem",
-                "dynamodb:Query",
-                "dynamodb:Scan",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem"
-            ],
-            "Resource": "arn:aws:dynamodb:${var.dynamodb_region}:${var.dynamodb_accountid}:table/${var.dbtable_name}"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:aws:dynamodb:us-east-1:${var.dynamodb_region}:${var.dynamodb_accountid}:table/${var.dbtable_name}"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:dynamodb:${var.dynamodb_region}:${var.dynamodb_accountid}:table/${var.dbtable_name}"
-        }
-    ]
-}
-EOF
-}
-## Attaching the policy to the role
-
 resource "aws_iam_role_policy_attachment" "iam-s3-policy-attach" {
   role = aws_iam_role.lambda_exec.name
   policy_arn = aws_iam_policy.lambda_s3artifact_role_policy.arn

@@ -21,6 +21,7 @@ module "ecr_image" {
   source = "./modules/ecr"
   ecr_repo_name = "${var.ecr_repo_name}_${var.project_id}"
   account_id = local.account_id
+  ecr_region = var.aws_region
   //path of the lambda_function.py
   lambda_function_local_path = var.lambda_function_local_path
   //path of dockerfile to create docker image

@@ -27,3 +27,6 @@ variable "region" {
 
 variable "account_id" {
 }
+
+variable "ecr_region" {
+}

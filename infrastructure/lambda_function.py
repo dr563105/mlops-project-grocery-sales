@@ -3,7 +3,7 @@ import os
 import mlflow
 import pandas as pd
 import boto3
-import json
+from datetime import datetime
 
 RUN_ID = os.getenv("RUN_ID")  # "5651db4644334361b10296c51ba3af3e"
 S3_BUCKET_NAME = os.getenv(
@@ -73,7 +73,8 @@ def lambda_handler(event, context=None) -> dict:
         "item_id": int(item_idx),
         "family": item_family,
         "prediction_date": find["date1"],
-        "unit_sales": str(pred_unit_sales),
+        "inserted_at": str(datetime.now().strftime('%Y-%m-%dT%H:%M:%S')),
+        "unit_sales": str(pred_unit_sales)
     }
 
     table_name = os.getenv("DBTABLE_NAME")

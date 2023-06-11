@@ -16,14 +16,15 @@ resource "null_resource" "ecr_image" {
 
   provisioner "local-exec" {
     command = <<EOF
-            aws ecr get-login-password --region ${var.region} | docker login --username AWS --password-stdin ${var.account_id}.dkr.ecr.${var.region}.amazonaws.com
+            aws ecr get-login-password --region ${var.ecr_region} | docker login --username AWS --password-stdin ${var.account_id}.dkr.ecr.${var.ecr_region}.amazonaws.com
             cd ${path.module}/../..
             docker build -t ${aws_ecr_repository.repo.repository_url}:${var.ecr_image_tag} .
             docker push ${aws_ecr_repository.repo.repository_url}:${var.ecr_image_tag}
+            docker logout ${var.account_id}.dkr.ecr.${var.ecr_region}.amazonaws.com
         EOF
   }
 }
-
+ 
 data "aws_ecr_image" "lambda_image" {
   depends_on = [
     null_resource.ecr_image

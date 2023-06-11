@@ -28,3 +28,8 @@ variable "dynamodb_accountid" {
 
 variable "dynamodb_region" {
 }
+
+# variable "iam_policy_arn" {
+#   description = "List of all the policies' arns"
+#   type = list(string)
+# }
