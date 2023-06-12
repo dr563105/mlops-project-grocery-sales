@@ -7,7 +7,7 @@ on:
         - "infrastructure/**"
 
 jobs: 
-  tf-plan:
+  push-build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
