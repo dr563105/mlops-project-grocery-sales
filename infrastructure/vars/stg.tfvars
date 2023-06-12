@@ -8,5 +8,3 @@ rest_api_name = "sales_predictor_api_tf2"
 dynamodb_tablename = "sales_preds_table_fromtf"
 dynamodb_hashkey = "store_id"
 dynamodb_rangekey = "item_id"
-
-
