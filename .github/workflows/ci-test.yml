@@ -31,3 +31,5 @@ jobs:
         working-directory: 'infrastructure'
         run: |
           terraform init -backend-config="key=mlops-grocery-sales-prod.tfstate" --reconfigure && terraform plan --var-file vars/prod.tfvars
+
+
