@@ -1,8 +1,9 @@
- Grocery Sales Forcasting
+# Grocery Sales Forcasting
 
 ## Problem Statement
 
 The sales department of a grocery chain wants to build an unit sales prediction engine(a web service application). Their ML engineer has already a predictor ML model but they don't know how to bring that model into production. The task here is to use necessary MLOPS tools, design and manage production workflow.
+
 ## MLOPS model pipeline tools
 
 1. [MLFlow](https://www.mlflow.org) for experiment tracking
@@ -13,6 +14,8 @@ The sales department of a grocery chain wants to build an unit sales prediction 
 6. [AWS Lambda](https://aws.amazon.com/lambda/) to build a serverless deployment solution
 7. [Terraform](https://www.terraform.io) to automate infrastructure
 
+![](assets/images/AWS-api-lambda-ecr-db-archi-tf.png)
+
 # Test the workflow
 
 **Streamlit**
@@ -21,7 +24,7 @@ For a quick demo checkout the deployed Streamlit [app](https://dr563105-streamli
 
 **AWS API Gateway triggering Lambda function**
 
-Use REST API client. Set method as `post`. Give this [link](https://i3pdoqdr92.execute-api.us-east-1.amazonaws.com/stg/predict) for send request. Supply the following JSON object as `body`. You should receive a JSON object back as output(respose body) with prediction.
+Use REST API client. Set method as `post`. Give this [link](https://z9rr1zuehl.execute-api.us-east-1.amazonaws.com/stg/predict_sales) for send request. Supply the following JSON object as `body`. You should receive a JSON object back as output(respose body) with prediction.
 ```
 {"find": {"date1": "2017-08-17", "store_nbr": 20}}
 ```
@@ -255,6 +258,9 @@ python test_lambda_fn_docker.py # in terminal 2. No need for pipenv as docker is
 
 The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please follow the exact data format to avoid errors.
 
+# Terraform - Infrastructure as Code
+
+To manage the data pipeline using Terraform, kindly refer to [this repo](https://github.com/dr563105/CI-CD-Terraform-Github-actions).
 
 ## Acknowledgements
 
