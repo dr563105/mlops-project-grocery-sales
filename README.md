@@ -1,8 +1,9 @@
- Grocery Sales Forcasting
+# Grocery Sales Forcasting
 
 ## Problem Statement
 
 The sales department of a grocery chain wants to build an unit sales prediction engine(a web service application). Their ML engineer has already a predictor ML model but they don't know how to bring that model into production. The task here is to use necessary MLOPS tools, design and manage production workflow.
+
 ## MLOPS model pipeline tools
 
 1. [MLFlow](https://www.mlflow.org) for experiment tracking
@@ -12,6 +13,8 @@ The sales department of a grocery chain wants to build an unit sales prediction 
 5. [AWS ECR](https://aws.amazon.com/ecr/) to store the built docker container
 6. [AWS Lambda](https://aws.amazon.com/lambda/) to build a serverless deployment solution
 7. [Terraform](https://www.terraform.io) to automate infrastructure
+
+![](assets/images/AWS-api-lambda-ecr-db-archi-tf.png)
 
 # Test the workflow
 
@@ -255,6 +258,10 @@ python test_lambda_fn_docker.py # in terminal 2. No need for pipenv as docker is
 
 The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please follow the exact data format to avoid errors.
 
+
+# Terraform - Infrastructure as Code
+
+To manage the data pipeline with Terraform, kindly refer to [this repo](https://github.com/dr563105/CI-CD-Terraform-Github-actions).
 
 ## Acknowledgements
 
