@@ -24,7 +24,7 @@ For a quick demo checkout the deployed Streamlit [app](https://dr563105-streamli
 
 **AWS API Gateway triggering Lambda function**
 
-Use REST API client. Set method as `post`. Give this [link](https://z9rr1zuehl.execute-api.us-east-1.amazonaws.com/stg/predict_sales) for send request. Supply the following JSON object as `body`. You should receive a JSON object back as output(respose body) with prediction.
+Use REST API client. Set method as `post`. Give this [link](https://w384kf0nng.execute-api.us-east-1.amazonaws.com/stg/predict_sales) for send request. Supply the following JSON object as `body`. You should receive a JSON object back as output(respose body) with prediction.
 ```
 {"find": {"date1": "2017-08-17", "store_nbr": 20}}
 ```
