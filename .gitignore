@@ -30,5 +30,8 @@ secrets/
 !items.parquet
 EDA.ipynb
 
+mlops-proj-mlflow-pred/
+mlops-tf-states/
+
 #vscode
 .vscode/

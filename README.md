@@ -262,10 +262,6 @@ The variable `date1` can be a date between 2017-08-16 and 2017-08-31. Please fol
 
 To manage the data pipeline using Terraform, kindly refer to [this repo](https://github.com/dr563105/CI-CD-Terraform-Github-actions).
 
-# Terraform - Infrastructure as Code
-
-To manage the data pipeline with Terraform, kindly refer to [this repo](https://github.com/dr563105/CI-CD-Terraform-Github-actions).
-
 ## Acknowledgements
 
 This final capstone project was created as a part of the [Mlops-zoomcamp course](https://github.com/DataTalksClub/mlops-zoomcamp) from [DataTalks.Club](https://datatalks.club). I'd like to thank the staff for providing high quality learning resource. I appreciate their time, effort and assistance in helping me complete the project. I highly recommend any aspiring data scientists this course.
